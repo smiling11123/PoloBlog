@@ -34,6 +34,8 @@ lerna-debug.log*
 !/.env.example
 src/main/resources/application-local.yml
 src/main/resources/application-prod.yml
+deploy/.env
+deploy/backend-config/application-prod.yml
 **/.env.local
 **/.env.*.local
 

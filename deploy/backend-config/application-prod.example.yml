@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: myblog
+    password: replace-with-a-strong-app-password
+  data:
+    redis:
+      host: redis
+      port: 6379
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  configuration:
+    log-impl:
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+
+minio:
+  endpoint: https://files.example.com
+  accessKey: replace-with-minio-access-key
+  secretKey: replace-with-minio-secret-key
+  bucketName: myblog
+
+gitee:
+  clientId: replace-with-gitee-client-id
+  clientSecret: replace-with-gitee-client-secret
+
+github:
+  clientId: replace-with-github-client-id
+  clientSecret: replace-with-github-client-secret
+
+callback:
+  url: https://blog.example.com/api/oauth/callback/
+
+frontend:
+  url: https://blog.example.com/
+
+jwt:
+  secret: replace-with-at-least-32-characters
+  expiration-millis: 86400000

@@ -1,0 +1,109 @@
+name: myblog
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: myblog-mysql
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-myblog}
+      MYSQL_USER: ${MYSQL_USER:-myblog}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ../SQL/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - myblog-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: myblog-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - myblog-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: myblog-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - myblog-net
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: myblog-minio-init
+    restart: "no"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-myblog}
+    depends_on:
+      minio:
+        condition: service_started
+    volumes:
+      - ./minio/init-minio.sh:/config/init-minio.sh:ro
+    entrypoint: ["/bin/sh", "/config/init-minio.sh"]
+    networks:
+      - myblog-net
+
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: myblog-backend
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./backend-config:/app/config:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - myblog-net
+
+networks:
+  myblog-net:
+    driver: bridge
