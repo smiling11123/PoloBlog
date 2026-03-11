@@ -124,7 +124,7 @@ CREATE TABLE `blog_comment` (
   `root_id` bigint(20) DEFAULT -1 COMMENT '根评论ID',
 --  `to_comment_id` bigint(20) DEFAULT -1 COMMENT '回复目标评论ID',
   `to_user_id` bigint(20) DEFAULT -1 COMMENT '回复目标用户ID',
-  `to_user_name` char(128) DEFAULT '匿名用户' COMMENT '回复目标用户昵称'
+  `to_user_name` char(128) DEFAULT '匿名用户' COMMENT '回复目标用户昵称',
   `like_count` int(11) DEFAULT 0 COMMENT '点赞数',
   `status` varchar(1) DEFAULT '0' COMMENT '状态',
   `create_time` datetime DEFAULT NULL,
@@ -281,6 +281,9 @@ INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES
 -- ==========================================
 -- 4. 初始化全站数据 (sys_all_site_data)
 -- ==========================================
+DELETE FROM `sys_all_site_data` WHERE id = 1;
 
-INSERT INTO `sys_all_site_data` (`total_user_count`, `total_article_count`, `total_comment_count`, `total_view_count`, `total_visit_count`, `total_visitor_count`, `update_time`) VALUES
-(1, 0, 0, 0, 0, 0, 0, NOW()), -- 用户 admin (id=1)  <-> 角色 admin (id=1)
+INSERT INTO `sys_all_site_data`
+(`id`, `total_user_count`, `total_article_count`, `total_comment_count`, `total_view_count`, `total_visit_count`, `total_visitor_count`, `total_message_slip_count`, `update_time`)
+VALUES
+(1, 2, 0, 0, 0, 0, 0, 0, NOW());
