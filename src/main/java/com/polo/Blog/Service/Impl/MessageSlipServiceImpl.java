@@ -1,0 +1,78 @@
+package com.polo.Blog.Service.Impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.polo.Blog.Domain.Entity.MessageSlip;
+import com.polo.Blog.Mapper.MessageSlipMapper;
+import com.polo.Blog.Service.MessageSlipService;
+import com.polo.Blog.Utils.RedisCache;
+import com.polo.Blog.Utils.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class MessageSlipServiceImpl extends ServiceImpl<MessageSlipMapper, MessageSlip> implements MessageSlipService {
+    @Autowired
+    private RedisCache redisCache;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+    @Override
+    public Result<IPage<MessageSlip>> getMessageSlipList(Integer page, Integer size){
+        LambdaQueryWrapper<MessageSlip> wrapper = new LambdaQueryWrapper<>();
+        IPage<MessageSlip> pageInfo = new Page<>(page, size);
+
+        wrapper.eq(MessageSlip::getIsDeleted, 0);
+
+        return Result.success(this.page(pageInfo, wrapper));
+
+    }
+
+    @Override
+    public Result<List<MessageSlip>> getMessageSlipToShow(Integer num){
+        String key = "MessageSlipToShow";
+        List<MessageSlip> messageSlipList = redisCache.getMessageToShowCache(key, new TypeReference<List<MessageSlip>>() {}, 50, this);
+        if(messageSlipList != null) return Result.success(messageSlipList);
+
+        return Result.success(new ArrayList<MessageSlip>());
+    }
+
+    @Override
+    public Result<String> publishMessageSlip(String content, Long userId){
+        MessageSlip messageSlip = new MessageSlip();
+        messageSlip.setContent(content);
+
+        if(userId == null) {
+            messageSlip.setId((long) -1);
+        }else {
+            messageSlip.setUserId(userId);
+        }
+
+        this.save(messageSlip);
+        String date = LocalDateTime.now().toString();
+        String newMessageSlipKey = "sys_daily_statistics:" + date + ":message_slip";
+        stringRedisTemplate.opsForValue().increment(newMessageSlipKey);
+
+        String key = "MessageSlipToShow";
+        redisCache.deleteCache(key);
+        return Result.success("发布成功");
+    }
+
+    @Override
+    public Result<String> deleteMessageSlip(Long id){
+        MessageSlip messageSlip = this.getById(id);
+        messageSlip.setIsDeleted(1);
+
+        this.updateById(messageSlip);
+        String key = "MessageSlipToShow";
+        redisCache.deleteCache(key);
+        return Result.success("删除成功");
+    }
+}

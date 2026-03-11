@@ -1,0 +1,63 @@
+server:
+  port: 8080 # 后端运行端口
+
+spring:
+  application:
+    name: MyBlog
+  config:
+    import: optional:classpath:application-local.yml
+
+  # 数据库连接配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 注意：如果用Docker，localhost也是可以的，因为映射出来了
+    # 这里的 myblog 是数据库名，需要你先去数据库里创建这个库！
+    url: ${DB_URL:jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  #redis 配置
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  #上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB      # 单个文件的最大上限（默认只有1MB）
+      max-request-size: 50MB   # 整个请求（一次上传多个文件）的总上限
+
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 开启控制台打印 SQL，开发时必开！
+  global-config:
+    db-config:
+      logic-delete-field: deleted # 逻辑删除字段名
+
+# Minio 配置
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ACCESS_KEY:}
+  secretKey: ${MINIO_SECRET_KEY:}
+  bucketName: ${MINIO_BUCKET_NAME:myblog}
+
+# 第三方登录配置
+gitee:
+  clientId: ${GITEE_CLIENT_ID:}
+  clientSecret: ${GITEE_CLIENT_SECRET:}
+
+github:
+  clientId: ${GITHUB_CLIENT_ID:}
+  clientSecret: ${GITHUB_CLIENT_SECRET:}
+
+callback:
+  url: ${CALLBACK_URL:http://localhost:8080/oauth/callback/}
+
+frontend:
+  url: ${FRONTEND_URL:http://localhost:6678/}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-millis: ${JWT_EXPIRATION_MILLIS:86400000}
