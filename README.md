@@ -181,6 +181,13 @@ cp deploy/.env.example deploy/.env
 cp deploy/backend-config/application-prod.example.yml deploy/backend-config/application-prod.yml
 ```
 
+如果你只有一个域名，推荐用这套路径方案：
+
+- 前台：`https://example.com/`
+- 后台：`https://example.com/admin/`
+- 后端接口：`https://example.com/api/`
+- MinIO 文件访问：`https://example.com/files/`
+
 需要重点修改：
 
 - `deploy/.env`
@@ -191,7 +198,7 @@ cp deploy/backend-config/application-prod.example.yml deploy/backend-config/appl
   - `MINIO_BUCKET_NAME`
 - `deploy/backend-config/application-prod.yml`
   - `spring.datasource.password`
-  - `minio.endpoint`
+  - `minio.endpoint`，单域名部署时建议填 `https://example.com/files`
   - `minio.accessKey`
   - `minio.secretKey`
   - `minio.bucketName`
@@ -199,9 +206,13 @@ cp deploy/backend-config/application-prod.example.yml deploy/backend-config/appl
   - `gitee.clientSecret`
   - `github.clientId`
   - `github.clientSecret`
-  - `callback.url`
-  - `frontend.url`
+  - `callback.url`，单域名部署时建议填 `https://example.com/api/oauth/callback/`
+  - `frontend.url`，单域名部署时建议填 `https://example.com/`
   - `jwt.secret`
+- `BlogFrontEndBack/.env.production`
+  - `VITE_APP_BASE=/admin/`
+  - `VITE_APP_BASE_API=/api`
+  - `VITE_APP_BASE_URL=https://example.com`
 
 注意：
 
@@ -274,17 +285,14 @@ sudo rsync -av dist/ /var/www/admin/
 sudo cp deploy/nginx/myblog.conf /etc/nginx/conf.d/myblog.conf
 ```
 
-然后把里面的域名改成你的真实域名：
+然后把里面的域名 `example.com` 改成你的真实域名。
 
-- `blog.example.com`
-- `admin.example.com`
-- `files.example.com`
+这份 Nginx 配置默认做了四件事：
 
-这份 Nginx 配置默认做了三件事：
-
-- `blog.example.com`：托管博客前台静态文件，并把 `/api/` 转发到后端 `127.0.0.1:8080`
-- `admin.example.com`：托管后台静态文件，并把 `/api/` 转发到后端 `127.0.0.1:8080`
-- `files.example.com`：反向代理 MinIO `127.0.0.1:9000`
+- `/`：托管博客前台静态文件
+- `/admin/`：托管后台静态文件
+- `/api/`：转发到后端 `127.0.0.1:8080`
+- `/files/`：反向代理 MinIO `127.0.0.1:9000`
 
 配置完成后重载：
 
@@ -299,7 +307,7 @@ sudo systemctl reload nginx
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d blog.your-domain.com -d admin.your-domain.com -d files.your-domain.com
+sudo certbot --nginx -d your-domain.com
 ```
 
 证书签发完成后，记得把生产配置中的这些地址改成 HTTPS：
@@ -314,12 +322,12 @@ sudo certbot --nginx -d blog.your-domain.com -d admin.your-domain.com -d files.y
 
 - `docker compose ps` 所有核心容器都处于 `Up`
 - `http://127.0.0.1:8080/article/list` 能返回数据
-- `https://blog.your-domain.com` 能打开前台
-- `https://admin.your-domain.com` 能打开后台
-- `https://files.your-domain.com` 能访问 MinIO 文件
+- `https://your-domain.com` 能打开前台
+- `https://your-domain.com/admin/` 能打开后台
+- `https://your-domain.com/files/` 能访问 MinIO 文件
 - Gitee/GitHub OAuth 回调地址已配置到：
-  - `https://blog.your-domain.com/api/oauth/callback/gitee`
-  - `https://blog.your-domain.com/api/oauth/callback/github`
+  - `https://your-domain.com/api/oauth/callback/gitee`
+  - `https://your-domain.com/api/oauth/callback/github`
 
 ### 10. 生产环境常用命令
 

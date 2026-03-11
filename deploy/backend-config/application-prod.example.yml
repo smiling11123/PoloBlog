@@ -25,7 +25,7 @@ mybatis-plus:
       logic-delete-field: deleted
 
 minio:
-  endpoint: https://files.example.com
+  endpoint: https://example.com/files
   accessKey: replace-with-minio-access-key
   secretKey: replace-with-minio-secret-key
   bucketName: myblog
@@ -39,10 +39,10 @@ github:
   clientSecret: replace-with-github-client-secret
 
 callback:
-  url: https://blog.example.com/api/oauth/callback/
+  url: https://example.com/api/oauth/callback/
 
 frontend:
-  url: https://blog.example.com/
+  url: https://example.com/
 
 jwt:
   secret: replace-with-at-least-32-characters
