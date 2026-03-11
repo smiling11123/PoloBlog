@@ -148,8 +148,6 @@ const summaryCards = computed(() => {
   ]
 })
 
-const recentStats = computed(() => dailyStats.value.slice(-7).reverse())
-
 const initCharts = async (data: DailyStatItem[]) => {
   const chartData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   const { DualAxes, Line } = await loadChartLibrary()

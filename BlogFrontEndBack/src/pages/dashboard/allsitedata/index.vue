@@ -12,8 +12,6 @@ import {
   GlobalOutlined,
   MessageOutlined,
   RadarChartOutlined,
-  TeamOutlined,
-  ThunderboltOutlined,
   UserOutlined,
 } from '@ant-design/icons-vue'
 
@@ -58,13 +56,6 @@ function loadChartLibrary() {
 function destroyChart() {
   distributionChart?.destroy()
   distributionChart = null
-}
-
-function safeDivide(dividend: number, divisor: number, digits = 2) {
-  if (!divisor)
-    return 0
-
-  return Number((dividend / divisor).toFixed(digits))
 }
 
 function formatNumber(value: number, digits = 0) {
@@ -188,86 +179,6 @@ const primaryMetrics = computed(() =>
   })),
 )
 
-const derivedMetrics = computed(() => [
-  {
-    label: '篇均浏览',
-    value: `${formatNumber(safeDivide(siteData.value.totalViewCount, siteData.value.totalArticleCount, 1), 1)} 次`,
-    helper: '每篇文章平均带来的浏览次数',
-    accent: accentPalette.value.base,
-  },
-  {
-    label: '篇均评论',
-    value: `${formatNumber(safeDivide(siteData.value.totalCommentCount, siteData.value.totalArticleCount, 1), 1)} 条`,
-    helper: '每篇文章平均沉淀的评论数量',
-    accent: accentPalette.value.soft,
-  },
-  {
-    label: '人均访问',
-    value: `${formatNumber(safeDivide(siteData.value.totalVisitCount, siteData.value.totalVisitorCount, 2), 2)} 次`,
-    helper: '每位独立访客平均访问站点次数',
-    accent: accentPalette.value.softer,
-  },
-  {
-    label: '评论转化',
-    value: `${formatNumber(safeDivide(siteData.value.totalCommentCount, siteData.value.totalViewCount, 4) * 100, 2)}%`,
-    helper: '浏览到评论的转化能力',
-    accent: accentPalette.value.deep,
-  },
-])
-
-const operationInsights = computed(() => [
-  {
-    label: '内容沉淀',
-    value: formatNumber(totalContentAsset.value),
-    helper: '文章、评论和留言的总内容资产',
-    icon: RadarChartOutlined,
-    accent: accentPalette.value.base,
-  },
-  {
-    label: '访问深度',
-    value: `${formatNumber(safeDivide(siteData.value.totalViewCount, siteData.value.totalVisitCount, 2), 2)} 页/访`,
-    helper: '访问后继续浏览内容的深度',
-    icon: ThunderboltOutlined,
-    accent: accentPalette.value.soft,
-  },
-  {
-    label: '社区参与',
-    value: `${formatNumber(safeDivide(siteData.value.totalMessageSlipCount, siteData.value.totalVisitorCount, 4) * 100, 2)}%`,
-    helper: '留言在访客中的渗透情况',
-    icon: TeamOutlined,
-    accent: accentPalette.value.deep,
-  },
-])
-
-const signalItems = computed(() => {
-  const visitDepth = safeDivide(siteData.value.totalViewCount, siteData.value.totalVisitCount, 2)
-  const interactionDensity = safeDivide(siteData.value.totalCommentCount + siteData.value.totalMessageSlipCount, siteData.value.totalViewCount, 4) * 100
-  const visitorReturn = safeDivide(siteData.value.totalVisitCount, siteData.value.totalVisitorCount, 2)
-
-  return [
-    {
-      label: '访问深度',
-      value: `${formatNumber(visitDepth, 2)} 页/访`,
-      helper: '浏览量 / 访问量',
-      score: Math.min(100, visitDepth * 18),
-      accent: `linear-gradient(90deg, ${accentPalette.value.soft}, ${accentPalette.value.base})`,
-    },
-    {
-      label: '互动密度',
-      value: `${formatNumber(interactionDensity, 2)}%`,
-      helper: '评论与留言 / 浏览量',
-      score: Math.min(100, interactionDensity * 4),
-      accent: `linear-gradient(90deg, ${accentPalette.value.softer}, ${accentPalette.value.base})`,
-    },
-    {
-      label: '访客回流',
-      value: `${formatNumber(visitorReturn, 2)} 次`,
-      helper: '访问量 / 独立访客',
-      score: Math.min(100, visitorReturn * 24),
-      accent: `linear-gradient(90deg, ${accentPalette.value.base}, ${accentPalette.value.deep})`,
-    },
-  ]
-})
 
 const distributionChartData = computed(() => {
   const items = [

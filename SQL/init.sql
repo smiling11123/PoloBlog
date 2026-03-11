@@ -1,5 +1,5 @@
 -- 1. 用户表 (核心)
-CREATE TABLE `sys_user` (
+CREATE TABLE IF NOT EXISTS `sys_user` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `uuid` varchar(100) DEFAULT NULL COMMENT '第三方id',
   `username` varchar(64) NOT NULL COMMENT '用户名',
@@ -20,7 +20,7 @@ CREATE TABLE `sys_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- 2. 角色表 (管理员/普通用户)
-CREATE TABLE `sys_role` (
+CREATE TABLE IF NOT EXISTS `sys_role` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `role_name` varchar(30) NOT NULL COMMENT '角色名称',
   `role_key` varchar(30) NOT NULL COMMENT '角色权限字符串(如 admin)',
@@ -32,7 +32,7 @@ CREATE TABLE `sys_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 -- 3. 菜单权限表 (控制后台侧边栏和按钮)
-CREATE TABLE `sys_menu` (
+CREATE TABLE IF NOT EXISTS `sys_menu` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `parent_id` bigint(20) DEFAULT 0 COMMENT '父菜单ID',
   `menu_name` varchar(50) NOT NULL COMMENT '菜单名称',
@@ -49,21 +49,21 @@ CREATE TABLE `sys_menu` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单权限表';
 
 -- 4. 用户-角色关联表
-CREATE TABLE `sys_user_role` (
+CREATE TABLE IF NOT EXISTS `sys_user_role` (
   `user_id` bigint(20) NOT NULL,
   `role_id` bigint(20) NOT NULL,
   PRIMARY KEY (`user_id`,`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户和角色关联表';
 
 -- 5. 角色-菜单关联表
-CREATE TABLE `sys_role_menu` (
+CREATE TABLE IF NOT EXISTS `sys_role_menu` (
   `role_id` bigint(20) NOT NULL,
   `menu_id` bigint(20) NOT NULL,
   PRIMARY KEY (`role_id`,`menu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色和菜单关联表';
 
 -- 6. 分类表
-CREATE TABLE `blog_category` (
+CREATE TABLE IF NOT EXISTS `blog_category` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `name` varchar(128) NOT NULL COMMENT '分类名',
   `pid` bigint(20) DEFAULT -1 COMMENT '父分类ID',
@@ -78,7 +78,7 @@ CREATE TABLE `blog_category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章分类表';
 
 -- 7. 标签表
-CREATE TABLE `blog_tag` (
+CREATE TABLE IF NOT EXISTS `blog_tag` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `name` varchar(128) NOT NULL COMMENT '标签名',
   `create_time` datetime DEFAULT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE `blog_tag` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章标签表';
 
 -- 8. 文章表
-CREATE TABLE `blog_article` (
+CREATE TABLE IF NOT EXISTS `blog_article` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `category_id` bigint(20) DEFAULT NULL COMMENT '所属分类ID',
   `title` varchar(256) NOT NULL COMMENT '文章标题',
@@ -108,14 +108,14 @@ CREATE TABLE `blog_article` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章表';
 
 -- 9. 文章-标签关联表
-CREATE TABLE `blog_article_tag` (
+CREATE TABLE IF NOT EXISTS `blog_article_tag` (
   `article_id` bigint(20) NOT NULL,
   `tag_id` bigint(20) NOT NULL,
   PRIMARY KEY (`article_id`,`tag_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章和标签关联表';
 
 -- 10. 评论表
-CREATE TABLE `blog_comment` (
+CREATE TABLE IF NOT EXISTS `blog_comment` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `article_id` bigint(20) NOT NULL COMMENT '关联文章ID',
   `user_id` bigint(20) NOT NULL COMMENT '评论人ID',
@@ -136,7 +136,7 @@ CREATE TABLE `blog_comment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章评论表';
 
 -- 11. 评论点赞记录表
-CREATE TABLE `blog_comment_like` (
+CREATE TABLE IF NOT EXISTS `blog_comment_like` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `comment_id` bigint(20) NOT NULL COMMENT '评论ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
@@ -146,7 +146,7 @@ CREATE TABLE `blog_comment_like` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评论点赞记录表';
 
 -- 12. 全站每日数据统计表
-CREATE TABLE `sys_daily_statistics` (
+CREATE TABLE IF NOT EXISTS `sys_daily_statistics` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `date` date NOT NULL COMMENT '统计日期',
   `login_user_count` int(11) DEFAULT 0,
@@ -163,7 +163,7 @@ CREATE TABLE `sys_daily_statistics` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='全站每日数据统计表';
 
 -- 13. 单篇文章每日统计表
-CREATE TABLE `blog_article_daily_stats` (
+CREATE TABLE IF NOT EXISTS `blog_article_daily_stats` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `article_id` bigint(20) NOT NULL,
   `date` date NOT NULL,
@@ -176,7 +176,7 @@ CREATE TABLE `blog_article_daily_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文章每日数据统计表';
 
 -- 14. 用户搜索记录表
-CREATE TABLE `sys_search_history` (
+CREATE TABLE IF NOT EXISTS `sys_search_history` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `user_id` bigint(20) DEFAULT NULL,
   `keyword` varchar(100) NOT NULL,
@@ -186,8 +186,8 @@ CREATE TABLE `sys_search_history` (
   KEY `idx_create_time` (`create_time`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索历史记录表';
 
---15. 壁纸库
-CREATE TABLE `sys_wallpaper` (
+-- 15. 壁纸库
+CREATE TABLE IF NOT EXISTS `sys_wallpaper` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `address` varchar(100)  COMMENT '地址',
   `name` varchar(100) NOT NULL,
@@ -196,8 +196,8 @@ CREATE TABLE `sys_wallpaper` (
   PRIMARY KEY (`id`),
   KEY `idx_create_time` (`create_time`) USING BTREE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='壁纸库';
---16. 留言
-CREATE TABLE `sys_message_slip` (
+-- 16. 留言
+CREATE TABLE IF NOT EXISTS `sys_message_slip` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `content` varchar(256)  COMMENT '留言内容',
   `user_id` bigint(20) COMMENT '留言人id',
@@ -206,8 +206,8 @@ CREATE TABLE `sys_message_slip` (
   PRIMARY KEY (`id`),
   KEY `idx_create_time` (`create_time`) USING BTREE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='留言';
---17. 作者简介
-CREATE TABLE `sys_auth_info` (
+-- 17. 作者简介
+CREATE TABLE IF NOT EXISTS `sys_auth_info` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `user_name` varchar(128) COMMENT '作者昵称',
   `avatar` varchar(128) COMMENT '头像地址',
@@ -215,8 +215,8 @@ CREATE TABLE `sys_auth_info` (
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='作者简介';
---18. 作品集
-CREATE TABLE `sys_works` (
+-- 18. 作品集
+CREATE TABLE IF NOT EXISTS `sys_works` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `title` varchar(128) COMMENT '标题',
   `thumbnail` varchar(128) COMMENT '封面地址',
@@ -228,7 +228,7 @@ CREATE TABLE `sys_works` (
   KEY `idx_create_time` (`create_time`) USING BTREE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='作品集';
 -- 19. 全站数据
-CREATE TABLE `sys_all_site_data` (
+CREATE TABLE IF NOT EXISTS `sys_all_site_data` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `total_user_count` int(11) DEFAULT 0,
   `total_article_count` int(11) DEFAULT 0,
@@ -241,7 +241,7 @@ CREATE TABLE `sys_all_site_data` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='全站数据';
 -- 20. 标语表
-CREATE TABLE `sys_slogan` (
+CREATE TABLE IF NOT EXISTS `sys_slogan` (
   `id` bigint(20) NOT NULL COMMENT '主键ID',
   `content` varchar(128) NOT NULL COMMENT '内容',
   `create_time` datetime DEFAULT NULL,
