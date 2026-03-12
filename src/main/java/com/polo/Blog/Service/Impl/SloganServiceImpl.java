@@ -49,12 +49,25 @@ public class SloganServiceImpl extends ServiceImpl<SloganMapper, Slogan> impleme
         }
 
         String content = sloganDTO.getContent().trim();
+        if(content.length() > 128) {
+            return Result.fail(400, "标语内容不能超过128个字符");
+        }
         LambdaQueryWrapper<Slogan> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Slogan::getIsDeleted, 0)
-                .eq(Slogan::getContent, content)
+        wrapper.eq(Slogan::getContent, content)
                 .last("limit 1");
-        if(this.getOne(wrapper) != null) {
+        Slogan existSlogan = this.getOne(wrapper);
+        if(existSlogan != null && Objects.equals(existSlogan.getIsDeleted(), 0)) {
             return Result.fail(400, "该标语已存在");
+        }
+        if(existSlogan != null) {
+            existSlogan.setIsDeleted(0);
+            existSlogan.setCreateTime(LocalDateTime.now());
+            boolean updated = this.updateById(existSlogan);
+            if(!updated) {
+                return Result.fail(500, "发布失败");
+            }
+            redisCache.deleteCache(SLOGAN_CACHE_KEY);
+            return Result.success("发布成功");
         }
 
         Slogan slogan = new Slogan();
