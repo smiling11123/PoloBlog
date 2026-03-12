@@ -1,41 +1,16 @@
 <script setup lang="ts">
-import { ref, reactive, toRaw, onMounted, nextTick } from 'vue'
-import { UploadOutlined, UserOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { ref, reactive, toRaw, onMounted } from 'vue'
+import { UploadOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { message, notification } from 'ant-design-vue'
 import { uploadFile } from '@/api/upload'
 import { getAuthInfo, updateAuthInfo, AuthInfoDTO } from '@/api/authInfo'
+import { getSloganList } from '~/api/slogan'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 
 const formRef = ref()
 const loading = ref(false)
-
-// === 动态标签状态 ===
-const tags = ref<string[]>([])
-const inputVisible = ref(false)
-const inputValue = ref('')
-const inputRef = ref()
-
-const handleClose = (removedTag: string) => {
-  tags.value = tags.value.filter(tag => tag !== removedTag)
-  formState.slogan = tags.value.join(',') // 同步到 slogan
-}
-
-const showInput = () => {
-  inputVisible.value = true
-  nextTick(() => {
-    inputRef.value?.focus()
-  })
-}
-
-const handleInputConfirm = () => {
-  if (inputValue.value && !tags.value.includes(inputValue.value)) {
-    tags.value = [...tags.value, inputValue.value]
-    formState.slogan = tags.value.join(',') // 同步到 slogan
-  }
-  inputVisible.value = false
-  inputValue.value = ''
-}
+const sloganList = ref<string[]>([])
 
 const formState: AuthInfoDTO = reactive({
   userName: '',
@@ -51,28 +26,17 @@ const rules: any = {
 const fetchData = async () => {
   loading.value = true
   try {
-    const res: any = await getAuthInfo()
-    if (res?.data) {
-      formState.userName = res.data.userName || ''
-      formState.avatar = res.data.avatar || ''
-      formState.profile = res.data.profile || ''
-      formState.slogan = res.data.slogan || ''
-      // 初始化 tags
-      if (formState.slogan) {
-        try {
-          const parsed = JSON.parse(formState.slogan)
-          if (Array.isArray(parsed)) {
-            tags.value = parsed.map(String)
-          } else {
-            tags.value = String(formState.slogan).split(/[,，]/).filter(t => t.trim())
-          }
-        } catch(e) {
-          // 如果原来的 slogan 不是 JSON 数组，则根据中英文逗号拆分为多个 tag
-          tags.value = String(formState.slogan).split(/[,，]/).filter(t => t.trim())
-        }
-      } else {
-        tags.value = []
-      }
+    const [authRes, sloganRes]: any = await Promise.all([getAuthInfo(), getSloganList()])
+    if (authRes?.data) {
+      formState.userName = authRes.data.userName || ''
+      formState.avatar = authRes.data.avatar || ''
+      formState.profile = authRes.data.profile || ''
+      formState.slogan = authRes.data.slogan || ''
+    }
+    if (sloganRes?.code === 200) {
+      sloganList.value = (sloganRes.data || [])
+        .map((item: { content?: string }) => typeof item.content === 'string' ? item.content.trim() : '')
+        .filter((item: string) => item.length > 0)
     }
   } catch (error) {
     message.error('获取作者信息失败')
@@ -141,27 +105,19 @@ async function onSubmit() {
               <a-input size="large" v-model:value="formState.userName" placeholder="请输入名称" />
             </a-form-item>
             
-            <a-form-item label="标签" name="slogan">
-              <div class="tags-container">
-                <template v-for="tag in tags" :key="tag">
-                  <a-tag closable @close="handleClose(tag)" color="blue" style="font-size: 14px; padding: 4px 10px; margin-bottom: 8px;">
-                    {{ tag }}
+            <a-form-item label="标语">
+              <div class="slogan-display">
+                <template v-if="sloganList.length">
+                  <a-tag
+                    v-for="item in sloganList"
+                    :key="item"
+                    color="blue"
+                    class="slogan-tag"
+                  >
+                    {{ item }}
                   </a-tag>
                 </template>
-                <a-input
-                  v-if="inputVisible"
-                  ref="inputRef"
-                  v-model:value="inputValue"
-                  type="text"
-                  size="small"
-                  :style="{ width: '100px', verticalAlign: 'top', marginBottom: '8px' }"
-                  @blur="handleInputConfirm"
-                  @keyup.enter="handleInputConfirm"
-                />
-                <a-tag v-else style="border-style: dashed; font-size: 14px; padding: 4px 10px; cursor: pointer; margin-bottom: 8px; background: transparent;" @click="showInput">
-                  <plus-outlined />
-                  添加标签
-                </a-tag>
+                <span v-else class="slogan-empty">暂无标语，请前往“标语管理”维护。</span>
               </div>
             </a-form-item>
             
@@ -275,9 +231,21 @@ async function onSubmit() {
   border-radius: 6px;
 }
 
-.tags-container {
+.slogan-display {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-height: 32px;
+  align-items: center;
+}
+
+.slogan-tag {
+  font-size: 14px;
+  padding: 4px 10px;
+}
+
+.slogan-empty {
+  color: #8c8c8c;
+  font-size: 13px;
 }
 </style>

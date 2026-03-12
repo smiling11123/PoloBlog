@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogoutOutlined, ProfileOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined, ProfileOutlined } from '@ant-design/icons-vue'
 
 const message = useMessage()
 const userStore = useUserStore()
@@ -35,14 +35,6 @@ async function handleClick({ key }: any) {
     </span>
     <template #overlay>
       <a-menu @click="handleClick">
-        <a-menu-item key="0">
-          <template #icon>
-            <UserOutlined />
-          </template>
-          <RouterLink to="/account/center">
-            个人中心
-          </RouterLink>
-        </a-menu-item>
         <a-menu-item key="1">
           <template #icon>
             <ProfileOutlined />

@@ -142,7 +142,7 @@ export default {
   'form.basic-form.phone-number.placeholder': '手机号',
   'form.basic-form.verification-code.placeholder': '验证码',
   // 个人页
-  'account.center.tags': '标签',
+  'account.center.tags': '标语',
   'account.cneter.team': '团队',
   'account.center.article': '文章',
   'account.center.application': '应用',

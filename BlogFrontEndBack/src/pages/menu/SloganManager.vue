@@ -224,7 +224,7 @@ onMounted(() => {
 }
 
 .slogan-count {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 13px;
 }
 
@@ -235,7 +235,7 @@ onMounted(() => {
 }
 
 .form-hint {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 13px;
   line-height: 1.6;
 }

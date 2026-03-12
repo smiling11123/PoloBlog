@@ -144,7 +144,7 @@ export default {
   'form.basic-form.phone-number.placeholder': 'Phone number',
   'form.basic-form.verification-code.placeholder': 'Verification code',
   // account page
-  'account.center.tags': 'tags',
+  'account.center.tags': 'slogan',
   'account.cneter.team': 'team',
   'account.center.article': 'article',
   'account.center.application': 'application',

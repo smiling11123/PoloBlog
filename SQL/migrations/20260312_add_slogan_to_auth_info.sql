@@ -1,0 +1,1 @@
+-- Reverted: no schema change required for sys_auth_info slogan.

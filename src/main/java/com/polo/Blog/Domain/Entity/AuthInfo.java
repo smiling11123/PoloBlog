@@ -23,6 +23,4 @@ public class AuthInfo {
     private String avatar;              //头像
     private String profile;             //简介
     private LocalDateTime updateTime;
-
-
 }
