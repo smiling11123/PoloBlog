@@ -140,6 +140,7 @@ import { useThemStore } from '@/stores/them'
 import { useUserStore } from '@/stores/user'
 import { getRootComment, getChildComment, publishComment } from '@/api/comment'
 import type { CommentDTO, CommentVO } from '@/type/Interface'
+import { frontAuthorization } from '@/utils/auth'
 import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image'
 import { formatTime } from '@/utils/tools'
 
@@ -162,7 +163,7 @@ const currentUserAvatarKey = 'current-user'
 
 // --- 回复状态标记 ---
 const replyTarget = ref<{ comment: CommentVO, rootComment?: CommentVO } | null>(null)
-const isLoggedIn = computed(() => Boolean(userStore.token || localStorage.getItem('Authorization')))
+const isLoggedIn = computed(() => Boolean(frontAuthorization.value))
 const currentCommentLength = computed(() => newComment.value.trim().length)
 const currentUserAvatar = computed(() => userStore.userInfo?.avatar || '')
 const currentUserInitial = computed(() => {

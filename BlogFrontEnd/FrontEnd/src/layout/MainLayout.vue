@@ -57,6 +57,7 @@ import Menu from '../components/Menu.vue';
 import Topbar from '../components/Topbar.vue';
 import Waves from '../components/Waves.vue';
 import DateTimeCard from '../components/DateTimeCard.vue';
+import { frontAuthorization, setFrontAuthorization } from '@/utils/auth';
 
 const appStore = useAppStore()
 const useStore = useUserStore()
@@ -103,11 +104,13 @@ const syncOAuthToken = async () => {
   const token = tokenFromCookie || tokenFromQuery
 
   if (!token) {
+    useStore.token = frontAuthorization.value || undefined
+    useStore.isLogin = Boolean(frontAuthorization.value)
     replaceUrlWithoutToken()
     return
   }
 
-  localStorage.setItem('Authorization', token)
+  setFrontAuthorization(token)
   useStore.token = token
   useStore.isLogin = true
 
