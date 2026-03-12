@@ -8,7 +8,7 @@
 
         <div class="content-wrapper" :style="{ opacity: opacity }">
             <div class="left-container">
-                <h2 class="title">Welcome Back</h2>
+                <h2 class="title">Welcome Back！</h2>
                 <div class="mate-container">
                     <TextType :text="displaySlogans as string | string[]"
                         :typingSpeed="opacity === 0 ? 750 : 70" :pauseDuration="1500" :showCursor="true"
