@@ -19,7 +19,15 @@
           <div class="wallpaper-grid" v-loading="loading">
             <div v-for="item in wallpaperList" :key="item.id" class="wallpaper-item"
               @click="handleSelectWallpaper($event, item.address)">
-              <img :src="item.address" :alt="item.name" loading="lazy">
+              <img
+                :src="getOptimizedImageUrl(item.address, 'sm')"
+                :srcset="buildImageSrcSet(item.address)"
+                sizes="(max-width: 768px) 50vw, 120px"
+                :alt="item.name"
+                loading="lazy"
+                decoding="async"
+                @error="fallbackToOriginalImage($event, item.address)"
+              >
               <div class="item-mask">
                 <span>应用</span>
               </div>
@@ -91,6 +99,7 @@ import { ref, computed } from 'vue';
 import { useThemStore } from '../stores/them';
 import { getWallpapaerList } from '@/api/wallpaper';
 import { useAppStore } from '@/stores/app';
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image';
 
 const themStore = useThemStore()
 const wallpaperList = ref<any[]>([])

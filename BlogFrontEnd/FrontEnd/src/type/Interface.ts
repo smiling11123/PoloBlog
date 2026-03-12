@@ -44,6 +44,7 @@ export interface CommentVO {
   articleId: string
   userId: string          //作者Id
   userName?: string    //作者昵称
+  userAvatar?: string
   content: string
   createTime: string
   likeCount: number
@@ -59,12 +60,9 @@ export interface CommentVO {
 
 export interface CommentDTO {
   articleId: string
-  userId: string
-  userName: string
   content: string
   rootId: string
-  toUserId: string
-  toUserName: string
+  toUserId?: string
 }
 
 export interface AuthInfo {

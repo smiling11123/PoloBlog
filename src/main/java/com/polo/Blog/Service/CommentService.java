@@ -11,16 +11,13 @@ public interface CommentService extends IService<Comment> {
 
     /**
      * 发布评论
-     * @param userId 评论人id
-     * @param userName 评论人昵称
      * @param articleId 文章id
      * @param rootId 回复评论id
      * @param content 回复内容
-     * @param toUserName 回复人昵称
      * @param toUserId 回复人id
      * @return 返回发布结果
      */
-    Result<String> publishComment(Long userId, String userName, Long articleId, Long rootId, String content, String toUserName, Long toUserId);
+    Result<String> publishComment(Long articleId, Long rootId, String content, Long toUserId);
 
     /**
      * 只查询 root 评论(rootId == null)

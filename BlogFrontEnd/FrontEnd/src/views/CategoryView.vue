@@ -29,7 +29,14 @@
                     }" @mouseenter="hoveredCategory = cat.id" @mouseleave="hoveredCategory = null"
                         :class="{ hover: hoveredCategory === cat.id }" @click="goToCategory(cat.id)">
                         <div class="card-bg-image" v-if="cat.thumbnail">
-                            <img :src="cat.thumbnail" />
+                            <img
+                                :src="getOptimizedImageUrl(cat.thumbnail, 'md')"
+                                :srcset="buildImageSrcSet(cat.thumbnail)"
+                                sizes="(max-width: 768px) 100vw, 320px"
+                                loading="lazy"
+                                decoding="async"
+                                @error="fallbackToOriginalImage($event, cat.thumbnail)"
+                            />
                             <div class="overlay"></div>
                         </div>
 
@@ -80,7 +87,14 @@
                     }" @mouseenter="hoveredAllCategory = cat.id" @mouseleave="hoveredAllCategory = null"
                         :class="{ hover: hoveredAllCategory === cat.id }" @click="goToCategory(cat.id)">
                         <div class="card-bg-image" v-if="cat.thumbnail">
-                            <img :src="cat.thumbnail" />
+                            <img
+                                :src="getOptimizedImageUrl(cat.thumbnail, 'md')"
+                                :srcset="buildImageSrcSet(cat.thumbnail)"
+                                sizes="(max-width: 768px) 100vw, 320px"
+                                loading="lazy"
+                                decoding="async"
+                                @error="fallbackToOriginalImage($event, cat.thumbnail)"
+                            />
                             <div class="overlay"></div>
                         </div>
 
@@ -131,6 +145,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useThemStore } from '@/stores/them'
 import { getCategoryHotList, getCategoryList } from '@/api/category'
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image'
 
 const themStore = useThemStore()
 const router = useRouter()

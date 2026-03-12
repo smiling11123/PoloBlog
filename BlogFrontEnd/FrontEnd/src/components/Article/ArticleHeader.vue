@@ -1,6 +1,15 @@
 <template>
   <div class="header-container">
-    <div class="bg-layer" :style="{ backgroundImage: `url('${thumbnail}')` }"></div>
+    <img
+      v-if="thumbnail"
+      class="bg-layer"
+      :src="getOptimizedImageUrl(thumbnail, 'md')"
+      :srcset="buildImageSrcSet(thumbnail)"
+      sizes="(max-width: 768px) 100vw, 960px"
+      :alt="title"
+      decoding="async"
+      @error="fallbackToOriginalImage($event, thumbnail)"
+    >
     <div class="bg-mask"></div>
 
     <div class="content-wrapper">
@@ -21,7 +30,15 @@
 
       <div class="cover-content">
         <div class="cover-wrapper">
-          <img :src="thumbnail" alt="cover" loading="lazy">
+          <img
+            :src="getOptimizedImageUrl(thumbnail, 'md')"
+            :srcset="buildImageSrcSet(thumbnail)"
+            sizes="(max-width: 768px) 100vw, 240px"
+            alt="cover"
+            loading="lazy"
+            decoding="async"
+            @error="fallbackToOriginalImage($event, thumbnail)"
+          >
         </div>
       </div>
     </div>
@@ -31,6 +48,7 @@
 <script setup lang="ts">
 import { formatTime } from '@/utils/tools';
 import { useThemStore } from '@/stores/them';
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image';
 
 const themStore = useThemStore()
 
@@ -65,9 +83,11 @@ withDefaults(defineProps<Props>(), {
 
 .bg-layer {
   position: absolute;
-  inset: -20px; 
-  background-size: cover;
-  background-position: center;
+  top: -20px;
+  left: -20px;
+  width: calc(100% + 40px);
+  height: calc(100% + 40px);
+  object-fit: cover;
   filter: blur(40px) saturate(150%) brightness(0.55);
   z-index: 1;
   transform: scale(1.1); 

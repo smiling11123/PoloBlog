@@ -7,20 +7,28 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.polo.Blog.Domain.Entity.Article;
 import com.polo.Blog.Domain.Entity.Comment;
+import com.polo.Blog.Domain.Entity.User;
 import com.polo.Blog.Domain.VO.CommentVO;
 import com.polo.Blog.Mapper.CommentMapper;
 import com.polo.Blog.Service.ArticleService;
 import com.polo.Blog.Service.CommentService;
+import com.polo.Blog.Service.UserService;
 import com.polo.Blog.Utils.EntityListToVOList;
 import com.polo.Blog.Utils.RedisCache;
 import com.polo.Blog.Utils.Result;
+import com.polo.Blog.Utils.UserContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
@@ -30,20 +38,51 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private StringRedisTemplate redisTemplate;
     @Autowired
     private RedisCache redisCache;
+    @Autowired
+    private UserService userService;
     @Override
-    public Result<String> publishComment(Long userId, String userName, Long articleId, Long rootId, String content, String toUserName, Long toUserId){
+    public Result<String> publishComment(Long articleId, Long rootId, String content, Long toUserId){
+        UserContext.LoginUser loginUser = UserContext.get();
+        if (loginUser == null || loginUser.getId() == null) {
+            return Result.fail(401, "请登录后发表评论");
+        }
+        if (articleId == null) {
+            return Result.fail(400, "文章不存在");
+        }
+        if (!StringUtils.hasText(content)) {
+            return Result.fail(400, "评论内容不能为空");
+        }
+        content = content.trim();
+        if (content.length() > 500) {
+            return Result.fail(400, "评论内容不能超过500个字符");
+        }
         Article article = articleService.getById(articleId);
         if(article == null) return Result.fail(404, "文章不存在");
+        if (article.getIsComment() != null && article.getIsComment() == 0) {
+            return Result.fail(400, "当前文章暂未开放评论");
+        }
+        User currentUser = userService.getById(loginUser.getId());
+        if (currentUser == null || Integer.valueOf(1).equals(currentUser.getIsDeleted())) {
+            return Result.fail(404, "当前用户不存在");
+        }
+        String userName = StringUtils.hasText(currentUser.getNickname()) ? currentUser.getNickname() : currentUser.getUsername();
+
         Comment comment = new Comment();
         comment.setContent(content);
         comment.setArticleId(articleId);
-        comment.setRootId(rootId);
-        comment.setUserId(userId);
+        comment.setRootId(rootId == null ? -1L : rootId);
+        comment.setUserId(currentUser.getId());
         comment.setCreateTime(LocalDateTime.now());
         comment.setUserName(userName);
-        if(rootId != -1){
+        if(comment.getRootId() != -1){
             comment.setToUserId(toUserId);
-            comment.setToUserName(toUserName);
+            if (toUserId != null) {
+                User toUser = userService.getById(toUserId);
+                if (toUser != null) {
+                    String toUserName = StringUtils.hasText(toUser.getNickname()) ? toUser.getNickname() : toUser.getUsername();
+                    comment.setToUserName(toUserName);
+                }
+            }
         }
         this.save(comment);
 
@@ -68,12 +107,19 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         Page<Comment> pageInfo = new Page<>(page, size);
         //获取rootId == null 的评论
-        wrapper.eq(Comment::getArticleId, articleId).eq(Comment::getRootId, -1);
+        wrapper.eq(Comment::getArticleId, articleId).eq(Comment::getRootId, -1).orderByDesc(Comment::getCreateTime);
         this.page(pageInfo, wrapper);
 
         IPage<CommentVO> commentVOIPage = new Page<>();
         BeanUtils.copyProperties(pageInfo, commentVOIPage);
-        commentVOIPage.setRecords(EntityListToVOList.commentListToVOList(pageInfo.getRecords()));
+        List<CommentVO> rootCommentList = EntityListToVOList.commentListToVOList(pageInfo.getRecords());
+        fillCommentDisplayInfo(rootCommentList);
+        commentVOIPage.setRecords(rootCommentList);
+        commentVOIPage.getRecords().forEach(commentVO -> {
+            LambdaQueryWrapper<Comment> childWrapper = new LambdaQueryWrapper<>();
+            childWrapper.eq(Comment::getRootId, commentVO.getId());
+            commentVO.setChildCount((int) this.count(childWrapper));
+        });
 //        redisCache.set(key, commentVOIPage, 30, TimeUnit.MINUTES);
         return Result.success(commentVOIPage);
     }
@@ -83,13 +129,44 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         Page<Comment> pageInfo = new Page<>(page, size);
         //toCommentId == parentId 的评论
-        wrapper.eq(Comment::getRootId, rootId);
+        wrapper.eq(Comment::getRootId, rootId).orderByAsc(Comment::getCreateTime);
         this.page(pageInfo, wrapper);
 
         IPage<CommentVO> commentVOIPage = new Page<>();
         BeanUtils.copyProperties(pageInfo, commentVOIPage);
-
-        return Result.success(commentVOIPage.setRecords(EntityListToVOList.commentListToVOList(pageInfo.getRecords())));
+        List<CommentVO> childCommentList = EntityListToVOList.commentListToVOList(pageInfo.getRecords());
+        fillCommentDisplayInfo(childCommentList);
+        return Result.success(commentVOIPage.setRecords(childCommentList));
     }
 
+    private void fillCommentDisplayInfo(List<CommentVO> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return;
+        }
+
+        Set<Long> userIds = comments.stream()
+                .map(CommentVO::getUserId)
+                .filter(id -> id != null && id > 0)
+                .collect(Collectors.toSet());
+        if (userIds.isEmpty()) {
+            return;
+        }
+
+        LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+        userWrapper.in(User::getId, userIds).eq(User::getIsDeleted, 0);
+        Map<Long, User> userMap = userService.list(userWrapper).stream()
+                .collect(Collectors.toMap(User::getId, user -> user, (left, right) -> left));
+
+        comments.forEach(commentVO -> {
+            User user = userMap.get(commentVO.getUserId());
+            if (user == null) {
+                return;
+            }
+            commentVO.setUserAvatar(user.getAvatar());
+            if (!StringUtils.hasText(commentVO.getUserName())) {
+                String displayName = StringUtils.hasText(user.getNickname()) ? user.getNickname() : user.getUsername();
+                commentVO.setUserName(displayName);
+            }
+        });
+    }
 }

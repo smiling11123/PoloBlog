@@ -13,6 +13,7 @@ public class CommentVO {
     private Long articleId;             // 文章Id
     private Long userId;                // 评论人Id
     private String userName;            // 评论人昵称
+    private String userAvatar;          // 评论人头像
     private String content;             // 评论内容
     private Long rootId;                // 根评论Id
     //private Long toCommentId;           // 回复评论Id

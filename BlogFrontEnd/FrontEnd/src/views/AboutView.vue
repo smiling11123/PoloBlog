@@ -5,7 +5,16 @@
             <div class="left-content">
                 <section class="profile-card" v-if="authInfo">
                     <div class="avatar-wrapper">
-                        <img :src="authInfo.avatar" alt="avatar" class="avatar" />
+                        <img
+                            :src="getOptimizedImageUrl(authInfo.avatar, 'sm')"
+                            :srcset="buildImageSrcSet(authInfo.avatar)"
+                            sizes="160px"
+                            alt="avatar"
+                            class="avatar"
+                            loading="lazy"
+                            decoding="async"
+                            @error="fallbackToOriginalImage($event, authInfo.avatar)"
+                        />
                     </div>
                     <h1 class="username"><i><strong>{{ authInfo.userName }}</strong></i></h1>
 
@@ -121,6 +130,7 @@ import MarkdownIt from 'markdown-it'
 import InfiniteMenu from '@/components/Vue-bits/InfiniteMenu.vue'
 import IconCloud from '@/components/Inspira/IconCloud.vue'
 import ArticleContent from '@/components/Article/ArticleContent.vue'
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image'
 
 const router = useRouter()
 const themStore = useThemStore()

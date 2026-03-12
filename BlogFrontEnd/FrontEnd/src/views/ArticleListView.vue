@@ -60,7 +60,14 @@
                     }" @mouseenter="hoveredArticle = article.id" @mouseleave="hoveredArticle = null"
                         :class="{ hover: hoveredArticle === article.id }" @click="goToArticle(article.id, article.isComment)">
                         <div class="item-image" v-if="article.thumbnail">
-                            <img :src="article.thumbnail" />
+                            <img
+                                :src="getOptimizedImageUrl(article.thumbnail, 'md')"
+                                :srcset="buildImageSrcSet(article.thumbnail)"
+                                sizes="(max-width: 968px) 100vw, 200px"
+                                loading="lazy"
+                                decoding="async"
+                                @error="fallbackToOriginalImage($event, article.thumbnail)"
+                            />
                             <div v-if="article.isTop" class="top-badge"
                                 :style="{ backgroundColor: themStore.them.accentColor }">
                                 置顶
@@ -170,6 +177,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useThemStore } from '@/stores/them'
 import { getArticleByCategory } from '@/api/article'
 import { getCategoryList } from '@/api/category'
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image'
 
 const themStore = useThemStore()
 const route = useRoute()

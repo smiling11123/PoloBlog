@@ -1,6 +1,7 @@
 package com.polo.Blog.Controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.polo.Blog.Domain.DTO.CommentPublishDTO;
 import com.polo.Blog.Annootation.RequireAuth;
 import com.polo.Blog.Domain.VO.CommentVO;
 import com.polo.Blog.Service.CommentService;
@@ -15,8 +16,8 @@ public class CommentController {
     private CommentService commentService;
     @RequireAuth
     @PostMapping("/publish")
-    public Result<String> postComment(@RequestParam Long userId, @RequestParam String userName, @RequestParam Long articleId, @RequestParam (defaultValue = "-1") Long rootId, @RequestParam String content, @RequestParam (required = false) String toUserName, @RequestParam (required = false) Long toUserId){
-        return commentService.publishComment(userId, userName, articleId, rootId, content, toUserName, toUserId);
+    public Result<String> postComment(@RequestBody CommentPublishDTO commentPublishDTO){
+        return commentService.publishComment(commentPublishDTO.getArticleId(), commentPublishDTO.getRootId(), commentPublishDTO.getContent(), commentPublishDTO.getToUserId());
     }
 
     @GetMapping("/rootComment")

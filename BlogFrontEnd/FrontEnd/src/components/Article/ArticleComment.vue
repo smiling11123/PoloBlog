@@ -1,12 +1,22 @@
 <template>
   <section class="comments-section">
-    <h3 class="comments-title">
-      <span class="comments-count">{{ totalComments }}</span> 条评论
-    </h3>
 
     <div class="comment-input-wrapper">
-      <div class="comment-avatar">我</div>
+      <div class="comment-avatar" :class="{ guest: !isLoggedIn }">
+        <img
+          v-if="shouldShowAvatar(currentUserAvatar, currentUserAvatarKey)"
+          :src="getOptimizedImageUrl(currentUserAvatar, 'sm')"
+          :srcset="buildImageSrcSet(currentUserAvatar)"
+          sizes="42px"
+          alt="当前用户头像"
+          @error="handleAvatarError($event, currentUserAvatar, currentUserAvatarKey)"
+        />
+        <span v-else>{{ currentUserInitial }}</span>
+      </div>
       <div class="comment-input-area">
+        <div v-if="!isLoggedIn" class="comment-login-tip">
+          登录后可发表评论和回复，点击输入框会自动唤起登录弹窗。
+        </div>
 
         <transition name="fade">
           <div v-if="replyTarget" class="reply-target-bar">
@@ -19,14 +29,17 @@
         </transition>
 
         <textarea ref="textareaRef" v-model="newComment" class="comment-textarea"
-          :placeholder="replyTarget ? '请文明发言，给予友善的回复...' : '写下你的想法，参与讨论吧...'" rows="3"
-          @keydown.enter.ctrl.prevent="submitComment"></textarea>
+          :placeholder="textareaPlaceholder" rows="3" :maxlength="MAX_COMMENT_LENGTH" :readonly="!isLoggedIn"
+          @focus="handleTextareaFocus" @keydown.enter.ctrl.prevent="submitComment"></textarea>
 
         <div class="comment-actions">
-          <span class="comment-hint">Ctrl + Enter 快速发送</span>
-          <button type="button" class="comment-submit-btn" :disabled="!newComment.trim() || isSubmitting"
+          <span class="comment-hint">
+            {{ isLoggedIn ? `${ currentCommentLength }/${ MAX_COMMENT_LENGTH } · Ctrl + Enter 快速发送` : '登录后即可参与讨论' }}
+          </span>
+          <button type="button" class="comment-submit-btn"
+            :disabled="isSubmitting || (isLoggedIn && !newComment.trim())"
             @click="submitComment">
-            {{ isSubmitting ? '发送中...' : '发表评论' }}
+            {{ isLoggedIn ? (isSubmitting ? '发送中...' : '发表评论') : '登录后评论' }}
           </button>
         </div>
       </div>
@@ -37,12 +50,20 @@
 
         <div class="comment-item root-comment">
           <div class="comment-main">
-            <div class="comment-avatar" :style="{ background: themStore.them.accentColor }">
-              {{ comment.userName?.[0] || '匿' }}
+            <div class="comment-avatar">
+              <img
+                v-if="shouldShowAvatar(comment.userAvatar, getAvatarKey('comment', comment.id))"
+                :src="getOptimizedImageUrl(comment.userAvatar, 'sm')"
+                :srcset="buildImageSrcSet(comment.userAvatar)"
+                sizes="42px"
+                :alt="`${resolveDisplayName(comment)}头像`"
+                @error="handleAvatarError($event, comment.userAvatar, getAvatarKey('comment', comment.id))"
+              />
+              <span v-else>{{ getCommentInitial(comment) }}</span>
             </div>
             <div class="comment-content">
               <div class="comment-header">
-                <span class="comment-author">{{ comment.userName || '匿名用户' }}</span>
+                <span class="comment-author">{{ resolveDisplayName(comment) }}</span>
                 <span class="comment-time">{{ formatTime(comment.createTime) }}</span>
               </div>
               <p class="comment-text">{{ comment.content }}</p>
@@ -59,8 +80,7 @@
                       <path fill="currentColor" d="M7 10l5 5 5-5z" />
                     </svg>
                   </span>
-                  <span>{{ comment.showReplies === 2 ? '收起回复' : '查看回复' }}</span>
-
+                  <span>{{ getRepliesButtonText(comment) }}</span>
                 </button>
               </div>
             </div>
@@ -71,12 +91,20 @@
           <div v-if="comment.showReplies === 2" class="replies-wrapper">
             <div v-if="comment.children && comment.children.length > 0" class="replies-list">
               <div v-for="reply in comment.children" :key="reply.id" class="comment-item reply-item">
-                <div class="comment-avatar small" :style="{ background: themStore.them.accentColor }">
-                  {{ reply.userName?.[0] || '匿' }}
+                <div class="comment-avatar small">
+                  <img
+                    v-if="shouldShowAvatar(reply.userAvatar, getAvatarKey('reply', reply.id))"
+                    :src="getOptimizedImageUrl(reply.userAvatar, 'sm')"
+                    :srcset="buildImageSrcSet(reply.userAvatar)"
+                    sizes="32px"
+                    :alt="`${resolveDisplayName(reply)}头像`"
+                    @error="handleAvatarError($event, reply.userAvatar, getAvatarKey('reply', reply.id))"
+                  />
+                  <span v-else>{{ getCommentInitial(reply) }}</span>
                 </div>
                 <div class="comment-content">
                   <div class="comment-header">
-                    <span class="comment-author">{{ reply.userName || '匿名用户' }}</span>
+                    <span class="comment-author">{{ resolveDisplayName(reply) }}</span>
                     <span v-if="reply.toUserName" class="reply-info">
                       回复 <span class="at-target">@{{ reply.toUserName }}</span>
                     </span>
@@ -88,48 +116,7 @@
                     <button type="button" class="action-btn reply-btn" @click="handleReply(reply, comment)">
                       回复
                     </button>
-                    <!-- 子评论的"查看回复"按钮，不缩进 -->
-                    <button type="button" class="view-replies-btn" @click="toggleChildReplies(reply)">
-                      <span class="arrow-icon" :class="{ expanded: reply.showReplies === 2 }">
-                        <svg viewBox="0 0 24 24" width="14" height="14">
-                          <path fill="currentColor" d="M7 10l5 5 5-5z" />
-                        </svg>
-                      </span>
-                      <span>{{ reply.showReplies === 2 ? '收起回复' : '查看回复' }}</span>
-
-                    </button>
                   </div>
-                  <!-- 子评论的子回复列表（无额外缩进） -->
-                  <transition name="slide-fade">
-                    <div v-if="reply.showReplies === 2" class="sub-replies-list">
-                      <div v-if="reply.children && reply.children.length > 0" class="replies-list">
-                        <div v-for="subReply in (reply.children || [])" :key="subReply.id"
-                          class="comment-item reply-item">
-                          <div class="comment-avatar small" :style="{ background: themStore.them.accentColor }">
-                            {{ subReply.userName?.[0] || '匿' }}
-                          </div>
-                          <div class="comment-content">
-                            <div class="comment-header">
-                              <span class="comment-author">{{ subReply.userName || '匿名用户' }}</span>
-                              <span v-if="subReply.toUserName" class="reply-info">
-                                回复 <span class="at-target">@{{ subReply.toUserName }}</span>
-                              </span>
-                              <span class="comment-time">{{ formatTime(subReply.createTime) }}</span>
-                            </div>
-                            <p class="comment-text">{{ subReply.content }}</p>
-                            <div class="comment-footer">
-
-                              <button type="button" class="action-btn reply-btn"
-                                @click="handleReply(subReply, comment)">
-                                回复
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div v-else class="replies-empty">暂无更多回复</div>
-                    </div>
-                  </transition>
                 </div>
               </div>
             </div>
@@ -137,16 +124,23 @@
           </div>
         </transition>
       </div>
+
+      <div v-if="rootComments.length === 0" class="comments-empty">
+        还没有评论，来留下第一条想法吧。
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { useAppStore } from '@/stores/app'
 import { useThemStore } from '@/stores/them'
 import { useUserStore } from '@/stores/user'
 import { getRootComment, getChildComment, publishComment } from '@/api/comment'
-import type { CommentVO } from '@/type/Interface'
+import type { CommentDTO, CommentVO } from '@/type/Interface'
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image'
 import { formatTime } from '@/utils/tools'
 
 const props = defineProps({
@@ -154,22 +148,85 @@ const props = defineProps({
 })
 
 const themStore = useThemStore()
+const appStore = useAppStore()
 const userStore = useUserStore()
+const MAX_COMMENT_LENGTH = 500
 
 // --- 基础状态 ---
 const newComment = ref('')
-const userAvatar = ref('我')
 const rootComments = ref<CommentVO[]>([])
 const isSubmitting = ref(false)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const avatarFallbackMap = ref<Record<string, boolean>>({})
+const currentUserAvatarKey = 'current-user'
 
 // --- 回复状态标记 ---
 const replyTarget = ref<{ comment: CommentVO, rootComment?: CommentVO } | null>(null)
+const isLoggedIn = computed(() => Boolean(userStore.token || localStorage.getItem('Authorization')))
+const currentCommentLength = computed(() => newComment.value.trim().length)
+const currentUserAvatar = computed(() => userStore.userInfo?.avatar || '')
+const currentUserInitial = computed(() => {
+  if (!isLoggedIn.value) {
+    return '登'
+  }
+  const displayName = userStore.userInfo?.nickname || userStore.userInfo?.username || '我'
+  return displayName.charAt(0)
+})
+const textareaPlaceholder = computed(() => {
+  if (!isLoggedIn.value) {
+    return '登录后写下你的想法，参与讨论吧...'
+  }
+  return replyTarget.value ? '请文明发言，给予友善的回复...' : '写下你的想法，参与讨论吧...'
+})
 
 // --- 计算属性：总评论数 (根评论 + 所有子评论) ---
 const totalComments = computed(() => {
   return rootComments.value.reduce((acc, cur) => acc + 1 + (cur.childCount || 0), 0)
 })
+
+const openLoginForComment = (messageText: string) => {
+  appStore.isShowLoginPage = true
+}
+
+const getAvatarKey = (prefix: string, id?: string | number) => `${prefix}-${id ?? 'unknown'}`
+
+const markAvatarError = (key: string) => {
+  avatarFallbackMap.value = { ...avatarFallbackMap.value, [key]: true }
+}
+
+const handleAvatarError = (event: Event, originalUrl: string | undefined, key: string) => {
+  const target = event.target as HTMLImageElement | null
+  if (avatarFallbackMap.value[key]) {
+    return
+  }
+  if (target?.dataset.originalFallbackApplied === 'true') {
+    markAvatarError(key)
+    return
+  }
+  fallbackToOriginalImage(event, originalUrl)
+}
+
+const shouldShowAvatar = (avatar?: string, key?: string) => {
+  if (!avatar || !avatar.trim()) {
+    return false
+  }
+  return key ? !avatarFallbackMap.value[key] : true
+}
+
+const resolveDisplayName = (comment?: Pick<CommentVO, 'userName'> | null) => {
+  return comment?.userName?.trim() || '匿名用户'
+}
+
+const getCommentInitial = (comment?: Pick<CommentVO, 'userName'> | null) => {
+  return resolveDisplayName(comment).charAt(0)
+}
+
+const getRepliesButtonText = (comment: Pick<CommentVO, 'childCount' | 'showReplies'>) => {
+  if (comment.showReplies === 2) {
+    return '收起回复'
+  }
+  return comment.childCount ? `查看回复` : '查看回复'
+}
 
 // --- 业务逻辑 ---
 
@@ -179,6 +236,7 @@ const fetchRootComments = async () => {
     const res = await getRootComment(props.articleId)
     rootComments.value = (res.data.records || []).map((item: any) => ({
       ...item,
+      childCount: Number(item.childCount || 0),
       children: [],
       showReplies: 1 // 1:收起, 2:展开
     }))
@@ -201,40 +259,32 @@ const toggleReplies = async (comment: CommentVO) => {
       comment.children = (res.data.records || []).map((item: any) => ({
         ...item,
         children: [],
+        childCount: Number(item.childCount || 0),
         showReplies: 1
       }))
     } catch (error) {
       console.error('获取子评论失败:', error)
+      ElMessage.error('获取回复失败，请稍后重试')
       return
     }
   }
   comment.showReplies = 2
 }
 
-// 2b. 展开/收起子评论的二级回复列表
-const toggleChildReplies = async (reply: CommentVO) => {
-  if (reply.showReplies === 2) {
-    reply.showReplies = 1
+const handleTextareaFocus = () => {
+  if (isLoggedIn.value) {
     return
   }
-  if (!reply.children || reply.children.length === 0) {
-    try {
-      const res = await getChildComment(reply.id)
-      reply.children = (res.data.records || []).map((item: any) => ({
-        ...item,
-        children: [],
-        showReplies: 1
-      }))
-    } catch (error) {
-      console.error('获取子评论的子回复失败:', error)
-      return
-    }
-  }
-  reply.showReplies = 2
+  textareaRef.value?.blur()
+  openLoginForComment('登录后才可以发表评论')
 }
 
 // 3. 点击“回复”按钮
 const handleReply = (comment: CommentVO, root?: CommentVO) => {
+  if (!isLoggedIn.value) {
+    openLoginForComment('登录后才可以回复评论')
+    return
+  }
   replyTarget.value = { comment, rootComment: root }
   textareaRef.value?.focus()
 }
@@ -246,30 +296,43 @@ const cancelReply = () => {
 
 // 5. 提交评论/回复
 const submitComment = async () => {
+  if (!isLoggedIn.value) {
+    openLoginForComment('登录后才可以发表评论')
+    return
+  }
+
   const content = newComment.value.trim()
   if (!content || isSubmitting.value) return
+  if (content.length > MAX_COMMENT_LENGTH) {
+    ElMessage.warning(`评论内容不能超过 ${MAX_COMMENT_LENGTH} 个字符`)
+    return
+  }
 
   isSubmitting.value = true
   try {
     const isReply = !!replyTarget.value
-    // 构造发送给后端的 DTO
-    const payload = {
+    const payload: CommentDTO = {
       articleId: props.articleId,
       content: content,
-      userId: userStore.userInfo?.id || '',
-      userName: userStore.userInfo?.nickname || '匿名用户',
-      // 如果是回复，计算 rootId；否则为 -1
-      rootId: isReply ? (replyTarget.value?.rootComment?.id || replyTarget.value?.comment.id) : "-1",
-      toUserId: isReply ? replyTarget.value?.comment.userId : null,
-      toUserName: isReply ? replyTarget.value?.comment.userName : null
+      rootId: isReply ? String(replyTarget.value?.rootComment?.id || replyTarget.value?.comment.id) : "-1",
+      toUserId: isReply ? replyTarget.value?.comment.userId : undefined,
     }
 
-    const res = await publishComment(payload as any)
+    const res = await publishComment(payload) as any
+    if (res.code !== 200) {
+      return
+    }
 
-    // 构造本地预览对象 (CommentVO)
     const newCommentVO: CommentVO = {
-      ...payload,
-      id: res.data?.id || Date.now().toString(),
+      id: String(Date.now()),
+      articleId: props.articleId,
+      userId: userStore.userInfo?.id || '',
+      userName: userStore.userInfo?.nickname || userStore.userInfo?.username || '我',
+      userAvatar: userStore.userInfo?.avatar || '',
+      content: payload.content,
+      rootId: payload.rootId,
+      toUserId: payload.toUserId,
+      toUserName: isReply ? replyTarget.value?.comment.userName : undefined,
       createTime: new Date().toISOString(),
       likeCount: 0,
       isLiked: false,
@@ -284,14 +347,14 @@ const submitComment = async () => {
       if (rootItem) {
         rootItem.children = rootItem.children || []
         rootItem.children.unshift(newCommentVO)
-        rootItem.childCount++
+        rootItem.childCount = (rootItem.childCount || 0) + 1
         rootItem.showReplies = 2 // 发表回复后自动展开
       }
     } else {
       rootComments.value.unshift(newCommentVO)
     }
 
-    // 重置状态
+    ElMessage.success(isReply ? '回复成功' : '评论成功')
     newComment.value = ''
     cancelReply()
   } catch (error) {
@@ -301,13 +364,16 @@ const submitComment = async () => {
   }
 }
 
-// 6. 点赞切换
-const toggleLike = (item: CommentVO) => {
-  item.isLiked = !item.isLiked
-  item.likeCount += item.isLiked ? 1 : -1
-}
-
-onMounted(fetchRootComments)
+onMounted(async () => {
+  await fetchRootComments()
+  if (isLoggedIn.value && !userStore.userInfo?.id) {
+    try {
+      await userStore.getUserInfo()
+    } catch (error) {
+      console.error('获取当前用户信息失败:', error)
+    }
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -358,6 +424,28 @@ onMounted(fetchRootComments)
   justify-content: center;
   font-weight: bold;
   flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  &.guest {
+    background: v-bind('themStore.them.cardBgHover');
+    color: v-bind('themStore.them.textColor');
+    border: 1px solid v-bind('themStore.them.cardBorder');
+  }
 
   &.small {
     width: 32px;
@@ -368,6 +456,17 @@ onMounted(fetchRootComments)
 
 .comment-input-area {
   flex: 1;
+}
+
+.comment-login-tip {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: v-bind('themStore.them.cardBgHover');
+  border: 1px dashed v-bind('themStore.them.cardBorder');
+  color: v-bind('themStore.them.textSecondary');
+  font-size: 0.85rem;
+  line-height: 1.6;
 }
 
 /* 回复标签样式 */
@@ -421,10 +520,15 @@ onMounted(fetchRootComments)
   color: v-bind('themStore.them.textColor');
   font-family: inherit;
   resize: vertical;
+  min-height: 108px;
 
   &:focus {
     outline: none;
     border-color: v-bind('themStore.them.accentColor');
+  }
+
+  &[readonly] {
+    cursor: pointer;
   }
 }
 
@@ -480,6 +584,7 @@ onMounted(fetchRootComments)
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .comment-author {
@@ -586,18 +691,18 @@ onMounted(fetchRootComments)
   gap: 12px;
 }
 
-/* 子评论的子回复列表（无额外缩进） */
-.sub-replies-list {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed v-bind('themStore.them.cardBorder');
-}
-
 .replies-empty {
   padding: 10px 0;
   font-size: 0.85rem;
   color: v-bind('themStore.them.textTertiary');
   font-style: italic;
+}
+
+.comments-empty {
+  padding: 18px 0 4px;
+  color: v-bind('themStore.them.textTertiary');
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 /* --- 动画 --- */
@@ -622,5 +727,41 @@ onMounted(fetchRootComments)
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .comments-section {
+    padding: 20px 16px;
+  }
+
+  .comment-input-wrapper,
+  .comment-main,
+  .reply-item {
+    gap: 12px;
+  }
+
+  .comment-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .comment-submit-btn {
+    width: 100%;
+  }
+
+  .replies-wrapper {
+    margin-left: 20px;
+    padding-left: 12px;
+  }
+
+  .comment-header {
+    gap: 4px 10px;
+  }
+
+  .comment-time {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 </style>

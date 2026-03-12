@@ -117,9 +117,15 @@
                         <div class="carousel-container" ref="carouselRef">
                             <div v-for="(article, index) in hotArticles" :key="article.id" class="carousel-slide"
                                 :class="{ active: currentSlide === index }" @click="gotoDetail(article.id, article.isComment)">
-                                <div class="slide-bg"
-                                    :style="{ backgroundImage: `url(${article.thumbnail || 'https://img.api.aa1.cn/2025/01/17/2ed9424c13a05.jpeg'})` }">
-                                </div>
+                                <img
+                                    class="slide-bg"
+                                    :src="getOptimizedImageUrl(article.thumbnail || defaultHotCover, 'md')"
+                                    :srcset="buildImageSrcSet(article.thumbnail || defaultHotCover)"
+                                    sizes="(max-width: 768px) 100vw, 960px"
+                                    :alt="article.title"
+                                    decoding="async"
+                                    @error="fallbackToOriginalImage($event, article.thumbnail || defaultHotCover)"
+                                >
                                 <div class="slide-overlay"></div>
                                 <div class="slide-content">
                                     <span class="hot-badge">热门推荐</span>
@@ -165,8 +171,17 @@
                             @click="gotoDetail(article.id, article.isComment)">
                             <!-- 封面占100%，信息叠加在封面上 -->
                             <div class="post-cover">
-                                <img v-if="article.thumbnail" class="cover-image" :src="article.thumbnail" alt="cover"
-                                    loading="lazy">
+                                <img
+                                    v-if="article.thumbnail"
+                                    class="cover-image"
+                                    :src="getOptimizedImageUrl(article.thumbnail, 'md')"
+                                    :srcset="buildImageSrcSet(article.thumbnail)"
+                                    sizes="(max-width: 480px) 100vw, (max-width: 768px) 100vw, 50vw"
+                                    alt="cover"
+                                    loading="lazy"
+                                    decoding="async"
+                                    @error="fallbackToOriginalImage($event, article.thumbnail)"
+                                >
                                 <div v-else class="cover-image empty-cover">
                                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="1.5">
@@ -270,7 +285,15 @@
                     <!-- 个人信息 -->
                     <div class="widget profile-widget animate-in">
                         <div class="avatar">
-                            <img :src="userStore.authInfo?.avatar || '/default-avatar.jpg'" alt="Admin">
+                            <img
+                                :src="getOptimizedImageUrl(userStore.authInfo?.avatar || defaultAvatar, 'sm')"
+                                :srcset="buildImageSrcSet(userStore.authInfo?.avatar || defaultAvatar)"
+                                sizes="90px"
+                                alt="Admin"
+                                loading="lazy"
+                                decoding="async"
+                                @error="fallbackToOriginalImage($event, userStore.authInfo?.avatar || defaultAvatar)"
+                            >
                         </div>
                         <h4>{{ userStore.authInfo?.userName || 'Admin' }}</h4>
                         <div class="slogan-list">
@@ -382,6 +405,7 @@ import { getArticleList, getHotArticle, getArticleByKeyword, getArticleByTag } f
 import { getTagList } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
 import { getAllSiteData } from '@/api/allSiteData'
+import { buildImageSrcSet, fallbackToOriginalImage, getOptimizedImageUrl } from '@/utils/image'
 import { formatTime } from '@/utils/tools'
 import type { articleVO } from '@/type/Interface'
 import { visit } from '@/api/visit'
@@ -390,6 +414,8 @@ const router = useRouter()
 const route = useRoute()
 const themStore = useThemStore()
 const userStore = useUserStore()
+const defaultHotCover = 'https://img.api.aa1.cn/2025/01/17/2ed9424c13a05.jpeg'
+const defaultAvatar = '/default-avatar.jpg'
 
 // ==================== 状态管理 ====================
 const loading = ref(false)
@@ -1244,9 +1270,9 @@ onUnmounted(() => {
         left: 0;
         width: 100%;
         height: 100%;
-        background-size: cover;
-        background-position: center;
+        object-fit: cover;
         transition: transform 0.6s ease;
+        display: block;
     }
 
     .slide-overlay {

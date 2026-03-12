@@ -6,7 +6,7 @@ import type { Them } from '@/them/them'
 export const useThemStore = defineStore('them', () => {
     const themModel = ref(localStorage.getItem("themModel") || "dark")
     // 默认背景图
-    const defaultHeaderImg = "http://localhost:9000/myblog/0100312000iznjmym62D5_W_2048_1536.jpg_.webp"
+    const defaultHeaderImg = "http://122.51.102.21/files/myblog/cb90ee30-ff45-4406-9d82-b3404cd4cad2.png"//"http://localhost:9000/myblog/0100312000iznjmym62D5_W_2048_1536.jpg_.webp"
     const headerImgUrl = ref<string>(localStorage.getItem("headerImgUrl") || defaultHeaderImg)
     const them = ref<Them>(themModel.value === "dark" ? dark : light)
 
