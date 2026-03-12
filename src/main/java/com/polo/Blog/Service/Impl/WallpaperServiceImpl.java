@@ -35,8 +35,8 @@ public class WallpaperServiceImpl extends ServiceImpl<WallpaperMapper, Wallpaper
     @Value("${minio.bucketName:myblog}")
     private String bucketName;
 
-    @Value("${minio.endpoint:http://localhost:9000}")
-    private String endpoint;
+    @Value("${minio.publicEndpoint:${minio.endpoint:http://localhost:9000}}")
+    private String publicEndpoint;
     @Override
     public Result<IPage<Wallpaper>> getWallpaperList(Integer page, Integer size){
        // String key = "WallpaperList_" + page + "_" + size;
@@ -91,7 +91,7 @@ public class WallpaperServiceImpl extends ServiceImpl<WallpaperMapper, Wallpaper
             );
 
             // 格式: http://localhost:9000/travel/文件名
-            String fileUrl = endpoint + "/" + bucketName + "/" + newFileName;
+            String fileUrl = publicEndpoint + "/" + bucketName + "/" + newFileName;
 
             LambdaQueryWrapper<Wallpaper> wrapper = new LambdaQueryWrapper<>();
             Wallpaper wallpaper = new Wallpaper();

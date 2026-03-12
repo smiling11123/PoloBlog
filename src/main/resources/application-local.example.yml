@@ -10,6 +10,7 @@ spring:
 
 minio:
   endpoint: http://localhost:9000
+  publicEndpoint: http://localhost:9000
   accessKey: replace-with-local-minio-access-key
   secretKey: replace-with-local-minio-secret-key
   bucketName: myblog

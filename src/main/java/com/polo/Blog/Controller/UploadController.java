@@ -22,8 +22,8 @@ public class UploadController {
     @Value("${minio.bucketName:myblog}")
     private String bucketName;
 
-    @Value("${minio.endpoint:http://localhost:9000}")
-    private String endpoint;
+    @Value("${minio.publicEndpoint:${minio.endpoint:http://localhost:9000}}")
+    private String publicEndpoint;
     @RequireAuth
     @PostMapping("/file")
     public Result upload(@RequestParam("file") MultipartFile file) {
@@ -50,7 +50,7 @@ public class UploadController {
             );
 
             // 格式: http://localhost:9000/travel/文件名
-            String fileUrl = endpoint + "/" + bucketName + "/" + newFileName;
+            String fileUrl = publicEndpoint + "/" + bucketName + "/" + newFileName;
 
             return Result.success(fileUrl);
 

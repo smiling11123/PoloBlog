@@ -25,7 +25,8 @@ mybatis-plus:
       logic-delete-field: deleted
 
 minio:
-  endpoint: https://example.com/files
+  endpoint: http://minio:9000
+  publicEndpoint: https://example.com/files
   accessKey: replace-with-minio-access-key
   secretKey: replace-with-minio-secret-key
   bucketName: myblog
