@@ -279,7 +279,17 @@ INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES
 (2, 2); -- 用户 test (id=2)   <-> 角色 user (id=2)
 
 -- ==========================================
--- 4. 初始化全站数据 (sys_all_site_data)
+-- 4. 初始化作者信息 (sys_auth_info)
+-- ==========================================
+DELETE FROM `sys_auth_info` WHERE id = 1;
+
+INSERT INTO `sys_auth_info`
+(`id`, `user_name`, `avatar`, `profile`, `update_time`)
+VALUES
+(1, '博主', '', '这个人很懒，还没有填写简介。', NOW());
+
+-- ==========================================
+-- 5. 初始化全站数据 (sys_all_site_data)
 -- ==========================================
 DELETE FROM `sys_all_site_data` WHERE id = 1;
 

@@ -21,35 +21,48 @@ public class AuthInfoServiceImpl extends ServiceImpl<AuthInfoMapper, AuthInfo> i
     private RedisCache redisCache;
 
     @Override
-    public Result<AuthInfo> getAuthInfo(){
+    public Result<AuthInfo> getAuthInfo() {
         String key = "authInfo";
         AuthInfo authInfoCache = redisCache.get(key, AuthInfo.class);
-        if(authInfoCache != null) return Result.success(authInfoCache);
+        if (authInfoCache != null) {
+            return Result.success(authInfoCache);
+        }
 
-        AuthInfo authInfo = this.list().getFirst();
-
+        AuthInfo authInfo = getOrCreateAuthInfo();
         redisCache.set(key, authInfo, 30, TimeUnit.MINUTES);
-
         return Result.success(authInfo);
     }
 
     @Override
-    public Result<String> updateAuthInfo(AuthInfoDTO authInfoDTO){
+    public Result<String> updateAuthInfo(AuthInfoDTO authInfoDTO) {
         UserContext.LoginUser loginUser = UserContext.get();
-        if(!loginUser.getRoleKey().equals("admin")) return Result.fail(403, "权限不足");
+        if (!loginUser.getRoleKey().equals("admin")) {
+            return Result.fail(403, "权限不足");
+        }
 
-        AuthInfo authInfo = this.list().getFirst();
+        AuthInfo authInfo = getOrCreateAuthInfo();
         BeanUtils.copyProperties(authInfoDTO, authInfo);
         authInfo.setUpdateTime(LocalDateTime.now());
         this.updateById(authInfo);
 
         String key = "authInfo";
         redisCache.deleteCache(key);
-
         return Result.success("更新成功");
-
     }
 
+    private AuthInfo getOrCreateAuthInfo() {
+        AuthInfo authInfo = this.getById(1L);
+        if (authInfo != null) {
+            return authInfo;
+        }
 
-
+        AuthInfo defaultAuthInfo = new AuthInfo();
+        defaultAuthInfo.setId(1L);
+        defaultAuthInfo.setUserName("博主");
+        defaultAuthInfo.setAvatar("");
+        defaultAuthInfo.setProfile("这个人很懒，还没有填写简介。");
+        defaultAuthInfo.setUpdateTime(LocalDateTime.now());
+        this.save(defaultAuthInfo);
+        return defaultAuthInfo;
+    }
 }
