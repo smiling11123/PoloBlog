@@ -115,10 +115,10 @@ async function submit() {
         <div class="ant-pro-form-login-top">
           <div class="ant-pro-form-login-header">
             <span class="ant-pro-form-login-logo">
-              <img src="/logo.svg">
+              <img src="/favicon.svg">
             </span>
             <span class="ant-pro-form-login-title">
-              Antdv Pro
+              poloBlog
             </span>
           </div>
           <div class="ant-pro-form-login-desc">

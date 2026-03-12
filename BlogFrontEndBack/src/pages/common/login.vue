@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
         <div class="flex-between h-15 px-4 mb-[2px]">
           <div class="flex-end">
             <span class="ant-pro-form-login-logo">
-              <img w-full h-full object-cover src="/logo.svg">
+              <img w-full h-full object-cover src="/favicon.svg">
             </span>
             <span class="ant-pro-form-login-title">
               blog后台管理
