@@ -3,6 +3,7 @@ package com.polo.Blog.Controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.polo.Blog.Annootation.RequireAuth;
 import com.polo.Blog.Domain.DTO.LoginUserDTO;
+import com.polo.Blog.Domain.DTO.PasswordUpdateDTO;
 import com.polo.Blog.Domain.DTO.UserDTO;
 import com.polo.Blog.Domain.VO.UserVO;
 import com.polo.Blog.Service.UserService;
@@ -49,6 +50,11 @@ public class UserController {
     @PostMapping("/update")
     public Result<String> updateUserInfo(@RequestBody UserDTO userDTO){
         return userService.updateUserInfo(userDTO);
+    }
+
+    @PostMapping({"/updatePassword", "/updatePassWord"})
+    public Result<String> updatePassword(@RequestBody PasswordUpdateDTO passwordUpdateDTO) {
+        return userService.updatePassword(passwordUpdateDTO);
     }
 }
 

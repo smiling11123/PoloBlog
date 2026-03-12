@@ -40,3 +40,45 @@ html {
 :before {
   box-sizing: border-box;
 }
+
+a,
+button,
+[role='button'],
+input,
+textarea,
+select,
+.ant-btn,
+.ant-input-affix-wrapper,
+.ant-input,
+.ant-select-selector {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+[role='button']:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+.ant-btn:focus:not(:focus-visible),
+.ant-btn:active,
+.ant-input-affix-wrapper:focus:not(:focus-visible),
+.ant-input-affix-wrapper-focused:not(:focus-visible),
+.ant-input:focus:not(:focus-visible),
+.ant-select-focused .ant-select-selector {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.ant-btn:focus-visible,
+.ant-input-affix-wrapper:focus-visible,
+.ant-input:focus-visible {
+  outline: 2px solid rgba(22, 119, 255, 0.45);
+  outline-offset: 2px;
+}

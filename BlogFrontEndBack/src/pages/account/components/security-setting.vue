@@ -67,6 +67,7 @@ const rules: Record<string, Rule[]> = {
 
 // 打开弹窗
 const handleModify = () => {
+  formRef.value?.resetFields()
   modalVisible.value = true
 }
 
@@ -77,13 +78,14 @@ const handleOk = async () => {
     confirmLoading.value = true
     
     const res = await updatePassWord({
-      passWord: formState.newPassword, 
-      oldPassWord: formState.oldPassword
+      newPassword: formState.newPassword,
+      oldPassword: formState.oldPassword,
     }) as any
 
     if (res.code === 200) {
       // 1. 修改成功，停止加载，关闭弹窗
       confirmLoading.value = false
+      formRef.value?.resetFields()
       modalVisible.value = false
       
       // 2. 定义倒计时逻辑
@@ -135,6 +137,9 @@ const handleOk = async () => {
       confirmLoading.value = false
     }
   } catch (error) {
+    if (!(error as any)?.errorFields) {
+      message.error('修改密码失败，请稍后重试')
+    }
     console.log('验证失败或请求错误', error)
     confirmLoading.value = false
   }

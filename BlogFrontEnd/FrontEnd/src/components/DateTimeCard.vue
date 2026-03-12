@@ -95,15 +95,33 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .datetime-card {
-    padding: 6px 12px;
-    min-width: 100px;
+    padding: 6px 10px;
+    min-width: 88px;
+    border-radius: 10px;
 
     .time {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
     }
 
     .date-wrapper {
-      font-size: 0.65rem;
+      gap: 4px;
+      font-size: 0.6rem;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .datetime-card {
+    min-width: 74px;
+    padding: 6px 8px;
+
+    .time {
+      font-size: 0.95rem;
+    }
+
+    .date-wrapper {
+      display: none;
     }
   }
 }

@@ -65,8 +65,11 @@ export const updateUserInfo = async (params: any) => {
 
 export const updatePassWord = async (params: any) => {
   return request({
-    url: '/user/updatePassWord',
-    params: {passWord: params.passWord, oldPassWord: params.oldPassWord},
+    url: '/user/updatePassword',
+    data: {
+      oldPassword: params.oldPassword,
+      newPassword: params.newPassword,
+    },
     method: 'POST',
   })
 }

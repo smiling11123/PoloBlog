@@ -147,10 +147,13 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
   display: flex;
   align-items: center;
   gap: 20px;
+  max-width: calc(100vw - 140px);
+  justify-content: flex-end;
 }
 
 .wallpaper-wrapper {
   position: relative;
+  flex-shrink: 0;
 
   .action-btn {
     width: 40px;
@@ -292,6 +295,7 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
 .theme-wrapper {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .toggle-switch {
@@ -351,6 +355,7 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
 .social-wrapper {
   display: flex;
   gap: 15px;
+  flex-shrink: 0;
 
   .social-btn {
     display: flex;
@@ -382,5 +387,77 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
 .slide-fade-leave-to {
   transform: translateY(-10px) scale(0.95);
   opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .bar-container {
+    top: 12px;
+    right: 12px;
+    gap: 10px;
+    max-width: calc(100vw - 96px);
+  }
+
+  .wallpaper-wrapper {
+    .action-btn {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .wallpaper-dropdown {
+    width: min(320px, calc(100vw - 24px));
+    right: -6px;
+    padding: 12px;
+
+    .wallpaper-grid {
+      grid-template-rows: repeat(2, 88px);
+      gap: 8px;
+      min-height: 184px;
+    }
+  }
+
+  .toggle-switch {
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+
+    &.is-dark {
+      .toggle-thumb {
+        transform: translateX(24px);
+      }
+    }
+  }
+
+  .toggle-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .social-wrapper {
+    gap: 8px;
+
+    .social-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+      justify-content: center;
+
+      span {
+        display: none;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .bar-container {
+    max-width: calc(100vw - 78px);
+    gap: 8px;
+  }
+
+  .wallpaper-dropdown {
+    right: -4px;
+  }
 }
 </style>

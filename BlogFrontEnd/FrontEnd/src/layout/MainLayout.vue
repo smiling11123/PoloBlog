@@ -243,7 +243,6 @@ onUnmounted(() => {
 .menu,
 .top-bar {
   position: fixed;
-  z-index: 99;
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -257,6 +256,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   min-height: 60px;
+  z-index: 110;
 }
 
 /* 菜单按钮位置 */
@@ -265,6 +265,7 @@ onUnmounted(() => {
   left: 15px;
   display: flex;
   flex-direction: column;
+  z-index: 100;
 
   &.hide-ui {
     transform: translateY(-100px);
@@ -323,5 +324,21 @@ onUnmounted(() => {
 .content-body {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .menu {
+    top: 12px;
+    left: 12px;
+
+    .datetime-wrapper {
+      margin-bottom: 10px;
+    }
+
+    .toggleMenuPage {
+      width: 40px;
+      height: 40px;
+    }
+  }
 }
 </style>

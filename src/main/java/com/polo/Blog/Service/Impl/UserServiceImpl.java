@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.polo.Blog.Domain.DTO.LoginUserDTO;
+import com.polo.Blog.Domain.DTO.PasswordUpdateDTO;
 import com.polo.Blog.Domain.DTO.UserDTO;
 import com.polo.Blog.Domain.Entity.Role;
 import com.polo.Blog.Domain.Entity.User;
@@ -35,6 +36,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -343,5 +345,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdateTime(LocalDateTime.now());
         this.updateById(user);
         return Result.success("更新成功");
+    }
+
+    @Override
+    public Result<String> updatePassword(PasswordUpdateDTO passwordUpdateDTO) {
+        UserContext.LoginUser loginUser = UserContext.get();
+        User user = this.getById(loginUser.getId());
+        if (user == null) {
+            return Result.fail(404, "用户不存在");
+        }
+        if (!StringUtils.hasText(passwordUpdateDTO.getOldPassword()) || !StringUtils.hasText(passwordUpdateDTO.getNewPassword())) {
+            return Result.fail(400, "密码不能为空");
+        }
+        if (!StringUtils.hasText(user.getPassword())) {
+            return Result.fail(400, "当前账号暂不支持修改本地密码");
+        }
+        if (!BCrypt.checkpw(passwordUpdateDTO.getOldPassword(), user.getPassword())) {
+            return Result.fail(400, "原密码错误");
+        }
+        if (passwordUpdateDTO.getNewPassword().length() < 6) {
+            return Result.fail(400, "新密码长度不能少于6位");
+        }
+        if (Objects.equals(passwordUpdateDTO.getOldPassword(), passwordUpdateDTO.getNewPassword())) {
+            return Result.fail(400, "新密码不能与原密码相同");
+        }
+
+        user.setPassword(BCrypt.hashpw(passwordUpdateDTO.getNewPassword()));
+        user.setUpdateTime(LocalDateTime.now());
+        this.updateById(user);
+        return Result.success("密码修改成功");
     }
 }

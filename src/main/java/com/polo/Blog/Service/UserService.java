@@ -3,6 +3,7 @@ package com.polo.Blog.Service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.polo.Blog.Domain.DTO.LoginUserDTO;
+import com.polo.Blog.Domain.DTO.PasswordUpdateDTO;
 import com.polo.Blog.Domain.DTO.UserDTO;
 import com.polo.Blog.Domain.Entity.User;
 import com.polo.Blog.Domain.VO.UserVO;
@@ -99,4 +100,11 @@ public interface UserService extends IService<User> {
      * @return 返回更新成功信息
      */
     Result<String> updateUserInfo(UserDTO userDTO);
+
+    /**
+     * 修改当前登录用户密码
+     * @param passwordUpdateDTO 密码信息
+     * @return 返回处理结果
+     */
+    Result<String> updatePassword(PasswordUpdateDTO passwordUpdateDTO);
 }

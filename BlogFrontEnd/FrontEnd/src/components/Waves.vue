@@ -6,10 +6,10 @@
         <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
       </defs>
       <g class="parallax">
-        <use xlink:href="#gentle-wave" x="48" y="0" fill="var(--wavesColor1)" />
-        <use xlink:href="#gentle-wave" x="48" y="3" fill="var(--wavesColor2)" />
-        <use xlink:href="#gentle-wave" x="48" y="5" fill="var(--wavesColor3)" />
-        <use xlink:href="#gentle-wave" x="48" y="7" fill="var(--content-bg-solid)" />
+        <use class="wave wave-1" xlink:href="#gentle-wave" x="48" y="0" />
+        <use class="wave wave-2" xlink:href="#gentle-wave" x="48" y="3" />
+        <use class="wave wave-3" xlink:href="#gentle-wave" x="48" y="5" />
+        <use class="wave wave-4" xlink:href="#gentle-wave" x="48" y="7" />
       </g>
     </svg>
   </div>
@@ -35,6 +35,22 @@
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.wave-1 {
+  fill: var(--wavesColor1);
+}
+
+.wave-2 {
+  fill: var(--wavesColor2);
+}
+
+.wave-3 {
+  fill: var(--wavesColor3);
+}
+
+.wave-4 {
+  fill: var(--content-bg-solid);
 }
 
 .parallax>use {
