@@ -53,6 +53,13 @@ public class WallpaperServiceImpl extends ServiceImpl<WallpaperMapper, Wallpaper
         return Result.success(wallpaperList);
     }
     @Override
+    public Result<IPage<Wallpaper>> getDeletedWallpaperList(Integer page, Integer size) {
+        Page<Wallpaper> wallpaperPage = new Page<>(page, size);
+        LambdaQueryWrapper<Wallpaper> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Wallpaper::getIsDeleted, 1).orderByDesc(Wallpaper::getCreateTime);
+        return Result.success(this.page(wallpaperPage, wrapper));
+    }
+    @Override
     public Result<String> deleteWallpaper(Long id){
         UserContext.LoginUser loginUser = UserContext.get();
         if(!loginUser.getRoleKey().equals("admin")) return Result.fail(403, "权限不足");
@@ -60,10 +67,22 @@ public class WallpaperServiceImpl extends ServiceImpl<WallpaperMapper, Wallpaper
 //        LambdaQueryWrapper<Wallpaper> wrapper = new LambdaQueryWrapper<>();
 //        wrapper.eq(Wallpaper::getId, id);
         Wallpaper wallpaper = this.getById(id);
+        if (wallpaper == null || Objects.equals(wallpaper.getIsDeleted(), 1)) return Result.fail(404, "壁纸不存在");
         wallpaper.setIsDeleted(1);
         this.updateById(wallpaper);
 
         return Result.success("删除成功");
+    }
+
+    @Override
+    public Result<String> restoreWallpaper(Long id) {
+        UserContext.LoginUser loginUser = UserContext.get();
+        if(!loginUser.getRoleKey().equals("admin")) return Result.fail(403, "权限不足");
+        Wallpaper wallpaper = this.getById(id);
+        if (wallpaper == null || Objects.equals(wallpaper.getIsDeleted(), 0)) return Result.fail(404, "壁纸不存在");
+        wallpaper.setIsDeleted(0);
+        this.updateById(wallpaper);
+        return Result.success("恢复成功");
     }
     @Transactional
     @Override
@@ -93,7 +112,6 @@ public class WallpaperServiceImpl extends ServiceImpl<WallpaperMapper, Wallpaper
             // 格式: http://localhost:9000/travel/文件名
             String fileUrl = publicEndpoint + "/" + bucketName + "/" + newFileName;
 
-            LambdaQueryWrapper<Wallpaper> wrapper = new LambdaQueryWrapper<>();
             Wallpaper wallpaper = new Wallpaper();
             wallpaper.setAddress(fileUrl);
             wallpaper.setName(name);

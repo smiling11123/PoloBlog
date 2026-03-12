@@ -5,6 +5,7 @@ import com.polo.Blog.Domain.DTO.CategoryDTO;
 import com.polo.Blog.Domain.Entity.Category;
 import com.polo.Blog.Service.CategoryService;
 import com.polo.Blog.Utils.Result;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,12 @@ public class CategoryController {
         return categoryService.getCategoryList();
     }
 
+    @RequireAuth
+    @GetMapping("/deletedList")
+    public Result<IPage<Category>> getDeletedCategoryList(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size){
+        return categoryService.getDeletedCategoryList(page, size);
+    }
+
     @PostMapping("/create")
     @RequireAuth
     public Result createCategory(@RequestBody CategoryDTO categoryDTO){
@@ -36,5 +43,11 @@ public class CategoryController {
     @RequireAuth
     public Result deleteCategory(@RequestParam Long id){
         return categoryService.deleteCategory(id);
+    }
+
+    @PostMapping("/restore")
+    @RequireAuth
+    public Result restoreCategory(@RequestParam Long id){
+        return categoryService.restoreCategory(id);
     }
 }

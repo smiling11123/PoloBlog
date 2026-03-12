@@ -18,12 +18,27 @@ public interface WallpaperService extends IService<Wallpaper> {
     Result<IPage<Wallpaper>> getWallpaperList(Integer page, Integer size);
 
     /**
+     * 获取已删除壁纸
+     * @param page 页数
+     * @param size 页大小
+     * @return 返回一页
+     */
+    Result<IPage<Wallpaper>> getDeletedWallpaperList(Integer page, Integer size);
+
+    /**
      * 删除壁纸
      * @param id 壁纸id
      * @return 返回处理结果
      */
     @RequireAuth
     Result<String> deleteWallpaper(Long id);
+
+    /**
+     * 恢复壁纸
+     * @param id 壁纸id
+     * @return 返回处理结果
+     */
+    Result<String> restoreWallpaper(Long id);
 
     /**
      * 上传壁纸

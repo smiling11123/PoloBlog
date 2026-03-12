@@ -184,15 +184,6 @@ export default [
           hideInMenu: true,
         },
       },
-      {
-        path: '/menu/deleted-users',
-        name: 'deletedusers',
-        component: () => import('~/pages/menu/DeletedUserManager.vue'),
-        meta: {
-          title: '已删除用户',
-          hideInMenu: true,
-        },
-      },
     ],
   },
 
@@ -255,6 +246,16 @@ export default [
     component: () => import('~/pages/User/userDetail.vue'),
     meta: {
       title: '用户信息',
+      hideInMenu: true,
+      access: [AccessEnum.ADMIN],
+    }
+  },
+  {
+    path: '/useredit/:id',
+    name: 'UserEdit',
+    component: () => import('~/pages/User/userEdit.vue'),
+    meta: {
+      title: '编辑用户资料',
       hideInMenu: true,
       access: [AccessEnum.ADMIN],
     }

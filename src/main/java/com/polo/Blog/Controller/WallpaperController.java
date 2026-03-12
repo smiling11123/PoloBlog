@@ -19,9 +19,19 @@ public class WallpaperController {
         return wallpaperService.getWallpaperList(page, size);
     }
     @RequireAuth
+    @GetMapping("deletedList")
+    public Result<IPage<Wallpaper>> getDeletedWallpaperList(@RequestParam (defaultValue = "1") Integer page, @RequestParam (defaultValue = "10") Integer size){
+        return wallpaperService.getDeletedWallpaperList(page, size);
+    }
+    @RequireAuth
     @PostMapping("delete")
     public Result<String> deleteWallpaper(@RequestParam Long id){
         return wallpaperService.deleteWallpaper(id);
+    }
+    @RequireAuth
+    @PostMapping("restore")
+    public Result<String> restoreWallpaper(@RequestParam Long id){
+        return wallpaperService.restoreWallpaper(id);
     }
     @RequireAuth
     @PostMapping("upload")

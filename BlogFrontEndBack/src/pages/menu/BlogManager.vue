@@ -235,7 +235,7 @@ const handleDataModalClose = () => {
               {{ cat.name }}
             </a-select-option>
           </a-select>
-          <a-button type="primary" danger @click="router.push({ name: 'recyclebin' })">
+          <a-button type="primary" danger @click="router.push({ name: 'recyclebin', query: { tab: 'articles' } })">
             <DeleteOutlined />
             回收站
           </a-button>

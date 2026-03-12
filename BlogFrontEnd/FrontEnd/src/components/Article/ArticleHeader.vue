@@ -37,7 +37,6 @@ const themStore = useThemStore()
 interface Props {
   thumbnail?: string
   title?: string
-  author?: string
   updateTime?: string
   viewCount?: number
 }
@@ -161,7 +160,7 @@ withDefaults(defineProps<Props>(), {
 
 @media (max-width: 768px) {
   .header-container {
-    border-radius: 0;
+    border-radius: 18px;
     padding: 0;
   }
 

@@ -3,7 +3,6 @@
     <div class="header">
       <ArticleHeader 
         :title="articledetail?.data.title" 
-        :author="articledetail?.data.auth || '匿名作者'"
         :updateTime="articledetail?.data.updateTime" 
         :viewCount="articledetail?.data.viewCount"
         :thumbnail="articledetail?.data.thumbnail" 

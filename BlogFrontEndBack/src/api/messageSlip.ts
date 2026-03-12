@@ -11,6 +11,17 @@ export const getMessageSlipList = async (page: number = 1, size: number = 20) =>
     })
 }
 
+export const getDeletedMessageSlipList = async (page: number = 1, size: number = 20) => {
+    return request({
+        url: '/messageSlip/deletedList',
+        method: 'get',
+        params: {
+            page,
+            size
+        }
+    })
+}
+
 export const getMessageSlipToShow = async (num: number = 20) => {
     return request({
         url: '/messageSlip/showList',
@@ -33,6 +44,14 @@ export const publishMessageSlip = async (content: string, userId?: number) => {
 export const deleteMessageSlip = async (id: number) => {
     return request({
         url: '/messageSlip/delete',
+        method: 'post',
+        params: { id }
+    })
+}
+
+export const restoreMessageSlip = async (id: number | string) => {
+    return request({
+        url: '/messageSlip/restore',
         method: 'post',
         params: { id }
     })

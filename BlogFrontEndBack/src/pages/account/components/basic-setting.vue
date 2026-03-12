@@ -182,7 +182,7 @@ async function onSubmit() {
   margin-bottom: 24px;
   font-size: 16px;
   font-weight: 500;
-  color: #1f2937;
+  color: #f9f9f9;
 }
 
 .avatar-section {

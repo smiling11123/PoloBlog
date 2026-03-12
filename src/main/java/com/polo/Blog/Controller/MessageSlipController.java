@@ -21,6 +21,12 @@ public class MessageSlipController {
         return messageSlipService.getMessageSlipList(page, size);
     }
 
+    @RequireAuth
+    @GetMapping("/deletedList")
+    public Result<IPage<MessageSlip>> getDeletedMessageSlipList(@RequestParam (defaultValue = "1") Integer page, @RequestParam (defaultValue = "20") Integer size){
+        return messageSlipService.getDeletedMessageSlipList(page, size);
+    }
+
     @GetMapping("/showList")
     public Result<List<MessageSlip>> getMessageSlipToShow(@RequestParam (defaultValue = "20") Integer num){
         return messageSlipService.getMessageSlipToShow(num);
@@ -33,5 +39,11 @@ public class MessageSlipController {
     @PostMapping("/delete")
     public Result<String> deleteMessageSlip(@RequestParam Long id){
         return messageSlipService.deleteMessageSlip(id);
+    }
+
+    @RequireAuth
+    @PostMapping("/restore")
+    public Result<String> restoreMessageSlip(@RequestParam Long id){
+        return messageSlipService.restoreMessageSlip(id);
     }
 }

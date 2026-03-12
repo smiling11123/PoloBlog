@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
 import { getWallpaperList, deleteWallpaper, uploadWallpaper } from '~/api/wallpaper'
 
+const router = useRouter()
 const data = ref<any[]>([])
 const loading = ref(false)
 const pagination = ref({
@@ -39,9 +41,13 @@ const handleTableChange = (pag: any) => {
 
 const handleDelete = async (id: number) => {
   try {
-    await deleteWallpaper(id)
-    message.success('删除成功')
-    fetchWallpapers(pagination.value.current, pagination.value.pageSize)
+    const res: any = await deleteWallpaper(id)
+    if (res.code === 200) {
+      message.success('删除成功')
+      fetchWallpapers(pagination.value.current, pagination.value.pageSize)
+      return
+    }
+    message.error(res.msg || '删除壁纸失败')
   } catch (error) {
     message.error('删除壁纸失败')
   }
@@ -82,7 +88,10 @@ onMounted(() => {
   <div class="wallpaper-manager-container" style="padding: 24px">
     <a-card title="壁纸管理" :bordered="false">
       <template #extra>
-        <a-button type="primary" @click="openUploadModal = true">上传壁纸</a-button>
+        <a-space>
+          <a-button @click="router.push({ name: 'recyclebin', query: { tab: 'wallpapers' } })">回收站</a-button>
+          <a-button type="primary" @click="openUploadModal = true">上传壁纸</a-button>
+        </a-space>
       </template>
 
       <a-table

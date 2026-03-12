@@ -36,6 +36,14 @@ public class MessageSlipServiceImpl extends ServiceImpl<MessageSlipMapper, Messa
     }
 
     @Override
+    public Result<IPage<MessageSlip>> getDeletedMessageSlipList(Integer page, Integer size) {
+        LambdaQueryWrapper<MessageSlip> wrapper = new LambdaQueryWrapper<>();
+        IPage<MessageSlip> pageInfo = new Page<>(page, size);
+        wrapper.eq(MessageSlip::getIsDeleted, 1).orderByDesc(MessageSlip::getCreateTime);
+        return Result.success(this.page(pageInfo, wrapper));
+    }
+
+    @Override
     public Result<List<MessageSlip>> getMessageSlipToShow(Integer num){
         String key = "MessageSlipToShow";
         List<MessageSlip> messageSlipList = redisCache.getMessageToShowCache(key, new TypeReference<List<MessageSlip>>() {}, 50, this);
@@ -68,11 +76,26 @@ public class MessageSlipServiceImpl extends ServiceImpl<MessageSlipMapper, Messa
     @Override
     public Result<String> deleteMessageSlip(Long id){
         MessageSlip messageSlip = this.getById(id);
+        if (messageSlip == null || messageSlip.getIsDeleted() == 1) {
+            return Result.fail(404, "留言不存在");
+        }
         messageSlip.setIsDeleted(1);
 
         this.updateById(messageSlip);
         String key = "MessageSlipToShow";
         redisCache.deleteCache(key);
         return Result.success("删除成功");
+    }
+
+    @Override
+    public Result<String> restoreMessageSlip(Long id) {
+        MessageSlip messageSlip = this.getById(id);
+        if (messageSlip == null || messageSlip.getIsDeleted() == 0) {
+            return Result.fail(404, "留言不存在");
+        }
+        messageSlip.setIsDeleted(0);
+        this.updateById(messageSlip);
+        redisCache.deleteCache("MessageSlipToShow");
+        return Result.success("恢复成功");
     }
 }

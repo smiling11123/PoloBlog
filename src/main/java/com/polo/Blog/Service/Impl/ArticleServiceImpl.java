@@ -68,12 +68,24 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if(!loginUser.getRoleKey().equals("admin")) return Result.success(new Page<>());
         Page<Article> pageInfo = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getIsDeleted, 1);
+        wrapper.eq(Article::getIsDeleted, 1).orderByDesc(Article::getUpdateTime, Article::getCreateTime);
 
         Page<Article> articlePage = this.page(pageInfo, wrapper);
         Page<ArticleVO> articleVOPage = new Page<>();
         return Result.success(articleVOPage.setRecords(EntityListToVOList.articleListToVOList(articlePage.getRecords(), userService, categoryService)));
 
+    }
+    @Override
+    public Result<String> restoreArticle(Long id){
+        UserContext.LoginUser loginUser = UserContext.get();
+        Article article = this.getById(id);
+        if(article == null || article.getIsDeleted() == 0) return Result.fail(404, "文章不存在");
+        if(!canManageArticle(loginUser, article)) return Result.fail(403, "权限不足");
+        article.setIsDeleted(0);
+        article.setUpdateTime(LocalDateTime.now());
+        this.updateById(article);
+        redisCache.deleteCache("ArticleDetail_" + article.getId());
+        return Result.success("恢复成功");
     }
     @Override
     public Result<ArticleVO> getArticleById(Long id) {
@@ -380,6 +392,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if(article == null || article.getIsDeleted() == 1) return Result.fail(404, "文章不存在");
         if(!canManageArticle(loginUser, article)) return Result.fail(403, "权限不足");
         article.setIsDeleted(1);
+        article.setUpdateTime(LocalDateTime.now());
         this.updateById(article);
         /// 删除Redis缓存
         redisCache.deleteCache("ArticleDetail_" + article.getId());

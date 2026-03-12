@@ -24,8 +24,11 @@
                 <span>应用</span>
               </div>
             </div>
-            <div v-for="i in (6 - wallpaperList.length)" :key="'empty-' + i" class="wallpaper-item empty"
-              v-if="wallpaperList.length < 6"></div>
+            <div
+              v-for="i in emptyWallpaperSlots"
+              :key="'empty-' + i"
+              class="wallpaper-item empty"
+            ></div>
           </div>
 
           <div class="pagination-ctrl">
@@ -98,6 +101,7 @@ const appStore = useAppStore()
 const currentPage = ref(1)
 const totalPages = ref(0)
 const pageSize = 6 // 3列 * 2行
+const emptyWallpaperSlots = computed(() => Math.max(pageSize - wallpaperList.value.length, 0))
 
 // 获取数据函数
 const fetchWallpapers = async (page: number) => {
@@ -180,7 +184,8 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
   position: absolute;
   top: 55px;
   right: 0;
-  width: 380px; // 稍微加宽以适应3列
+  width: min(360px, calc(100vw - 32px));
+  max-width: calc(100vw - 16px);
   background: v-bind('themStore.them.wavesColor2');
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -405,14 +410,27 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
   }
 
   .wallpaper-dropdown {
-    width: min(320px, calc(100vw - 24px));
-    right: -6px;
-    padding: 12px;
+    top: 48px;
+    right: 0;
+    width: min(286px, calc(100vw - 20px));
+    padding: 10px;
 
     .wallpaper-grid {
-      grid-template-rows: repeat(2, 88px);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(3, 76px);
       gap: 8px;
-      min-height: 184px;
+      min-height: 244px;
+    }
+
+    .dropdown-header {
+      margin-bottom: 10px;
+      padding: 0;
+      font-size: 13px;
+    }
+
+    .pagination-ctrl {
+      margin-top: 12px;
+      gap: 14px;
     }
   }
 
@@ -457,7 +475,16 @@ const handleSelectWallpaper = (e: MouseEvent, url: string) => {
   }
 
   .wallpaper-dropdown {
-    right: -4px;
+    width: min(252px, calc(100vw - 16px));
+
+    .wallpaper-grid {
+      grid-template-rows: repeat(3, 68px);
+      min-height: 220px;
+    }
+
+    .pagination-ctrl {
+      gap: 12px;
+    }
   }
 }
 </style>

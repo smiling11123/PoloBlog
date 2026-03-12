@@ -21,6 +21,12 @@ public class WorksController {
         return worksService.getWorksList(page, size);
     }
 
+    @RequireAuth
+    @GetMapping("/deletedList")
+    public Result<IPage<WorksVO>> getDeletedWorksList(@RequestParam (defaultValue = "1") Integer page, @RequestParam (defaultValue = "10") Integer size){
+        return worksService.getDeletedWorksList(page, size);
+    }
+
     @GetMapping("/detail")
     public Result<Works> getWorksDetail(@RequestParam Long id){
         return worksService.getWorksDetail(id);
@@ -41,5 +47,11 @@ public class WorksController {
     @PostMapping("/delete")
     public Result<String> deleteWorks(@RequestParam Long id){
         return worksService.deleteWorks(id);
+    }
+
+    @RequireAuth
+    @PostMapping("/restore")
+    public Result<String> restoreWorks(@RequestParam Long id){
+        return worksService.restoreWorks(id);
     }
 }

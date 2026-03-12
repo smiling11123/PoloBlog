@@ -16,7 +16,6 @@ import com.polo.Blog.Mapper.UserMapper;
 import com.polo.Blog.Service.RoleService;
 import com.polo.Blog.Service.UserRoleService;
 import com.polo.Blog.Service.UserService;
-import com.polo.Blog.Utils.EntityListToVOList;
 import com.polo.Blog.Utils.JwtUtils;
 import com.polo.Blog.Utils.Result;
 import com.polo.Blog.Utils.UserContext;
@@ -42,6 +41,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -234,62 +235,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public Result<IPage<UserVO>> getDeletedUser(int page, int size){
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         IPage<User> pageInfo = new Page<>(page, size);
-        wrapper.eq(User::getIsDeleted, 1);
+        wrapper.eq(User::getIsDeleted, 1).orderByDesc(User::getUpdateTime, User::getCreateTime);
         IPage<User> userIPage = this.page(pageInfo, wrapper);
 
         IPage<UserVO> userVOIPage = new Page<>();
+        BeanUtils.copyProperties(userIPage, userVOIPage);
 
-        return Result.success(userVOIPage.setRecords(EntityListToVOList.userListToVOList(userIPage.getRecords())));
+        return Result.success(userVOIPage.setRecords(buildUserVOList(userIPage.getRecords())));
 
     }
     @Override
     public Result<UserVO> getUserDetail(Long id){
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<UserRole> userRoleWrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getId, id);
-        UserVO userVO = new UserVO();
-        User user = this.getOne(wrapper);
-
-        //复制详细信息
-        BeanUtils.copyProperties(user, userVO);
-        //获取角色
-        userRoleWrapper.eq(UserRole::getUserId, user.getId());
-        long roleId = userRoleService.getOne(userRoleWrapper).getRoleId();
-        roleWrapper.eq(Role::getId, roleId);
-        Role role = roleService.getOne(roleWrapper);
-        userVO.setRoleName(role.getRoleName());
-        userVO.setRoleKey(role.getRoleKey());
-        return Result.success(userVO);
+        User user = this.getById(id);
+        if (user == null) {
+            return Result.fail(404, "用户不存在");
+        }
+        return Result.success(buildUserVO(user));
     }
     @Override
     public Result<UserVO> getUserDetailById(Long id){
         UserContext.LoginUser loginUser = UserContext.get();
         if(!Objects.equals(loginUser.getRoleKey(), "admin")) return Result.success(new UserVO());
         User user = this.getById(id);
-        UserVO userVO = new UserVO();
-        BeanUtils.copyProperties(user, userVO);
-        //查用户角色关联
-        LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(UserRole::getUserId, user.getId());
-        UserRole userRole = userRoleService.getOne(wrapper);
-        //查角色
-        LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
-        roleWrapper.eq(Role::getId, userRole.getRoleId());
-        Role role = roleService.getOne(roleWrapper);
-        //复制给VO
-        userVO.setRoleName(role.getRoleName());
-        userVO.setRoleKey(role.getRoleKey());
-        return Result.success(userVO);
+        if (user == null) {
+            return Result.fail(404, "用户不存在");
+        }
+        return Result.success(buildUserVO(user));
     }
     @Override
     public Result<String> deleteUserById(Long id){
         UserContext.LoginUser loginUser = UserContext.get();
         if(!Objects.equals(loginUser.getRoleKey(), "admin")) return Result.fail(403, "权限不足");
         User user = this.getById(id);
+        if (user == null || Objects.equals(user.getIsDeleted(), 1)) {
+            return Result.fail(404, "用户不存在");
+        }
         user.setIsDeleted(1);
+        user.setUpdateTime(LocalDateTime.now());
         this.updateById(user);
         return Result.success("删除成功");
+    }
+
+    @Override
+    public Result<String> restoreUserById(Long id) {
+        UserContext.LoginUser loginUser = UserContext.get();
+        if(!Objects.equals(loginUser.getRoleKey(), "admin")) return Result.fail(403, "权限不足");
+        User user = this.getById(id);
+        if (user == null || Objects.equals(user.getIsDeleted(), 0)) {
+            return Result.fail(404, "用户不存在");
+        }
+        user.setIsDeleted(0);
+        user.setUpdateTime(LocalDateTime.now());
+        this.updateById(user);
+        return Result.success("恢复成功");
     }
 
     @Override
@@ -301,13 +299,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(!Objects.equals(loginUser.getRoleKey(), "admin")) {
             return Result.success(new Page<>());
         }
-        wrapper.eq(User::getIsDeleted, 0);
-        //按浏览量降序
+        wrapper.eq(User::getIsDeleted, 0).orderByDesc(User::getUpdateTime, User::getCreateTime);
         IPage<User> result = this.page(pageInfo, wrapper);
         IPage<UserVO> userVOList = new Page<>();
 
         BeanUtils.copyProperties(result, userVOList);
-        return Result.success(userVOList.setRecords(EntityListToVOList.userListToVOList(pageInfo.getRecords())));
+        return Result.success(userVOList.setRecords(buildUserVOList(pageInfo.getRecords())));
     }
 
     @Override
@@ -320,13 +317,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return Result.success(new Page<>());
         }
         wrapper.eq(User::getIsDeleted, 0);
-        wrapper.like(User::getUsername, keyword);
-        //按浏览量降序
+        if (StringUtils.hasText(keyword)) {
+            wrapper.and(query -> query
+                    .like(User::getUsername, keyword)
+                    .or()
+                    .like(User::getNickname, keyword)
+                    .or()
+                    .like(User::getEmail, keyword));
+        }
+        wrapper.orderByDesc(User::getUpdateTime, User::getCreateTime);
         IPage<User> result = this.page(pageInfo, wrapper);
         IPage<UserVO> userVOList = new Page<>();
 
         BeanUtils.copyProperties(result, userVOList);
-        return Result.success(userVOList.setRecords(EntityListToVOList.userListToVOList(pageInfo.getRecords())));
+        return Result.success(userVOList.setRecords(buildUserVOList(pageInfo.getRecords())));
     }
 
     @Override
@@ -340,11 +344,65 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public Result<String> updateUserInfo(UserDTO userDTO){
         UserContext.LoginUser loginUser = UserContext.get();
         if(!loginUser.getRoleKey().equals( "admin")) return Result.fail(403, "权限不足");
-        User user = this.getById(loginUser.getId());
-        BeanUtils.copyProperties(userDTO, user);
+        if (userDTO.getId() == null) {
+            return Result.fail(400, "用户ID不能为空");
+        }
+        User user = this.getById(userDTO.getId());
+        if (user == null) {
+            return Result.fail(404, "用户不存在");
+        }
+        if (userDTO.getUsername() != null) {
+            user.setUsername(userDTO.getUsername().trim());
+        }
+        if (userDTO.getNickname() != null) {
+            user.setNickname(userDTO.getNickname().trim());
+        }
+        if (userDTO.getEmail() != null) {
+            user.setEmail(userDTO.getEmail().trim());
+        }
+        if (userDTO.getAvatar() != null) {
+            user.setAvatar(userDTO.getAvatar().trim());
+        }
+        if (userDTO.getIntro() != null) {
+            user.setIntro(userDTO.getIntro().trim());
+        }
+        if (userDTO.getSource() != null) {
+            user.setSource(userDTO.getSource().trim());
+        }
+        if (userDTO.getStatus() != null) {
+            user.setStatus(userDTO.getStatus().trim());
+        }
+        if (userDTO.getIsDeleted() != null) {
+            user.setIsDeleted(userDTO.getIsDeleted());
+        }
         user.setUpdateTime(LocalDateTime.now());
         this.updateById(user);
         return Result.success("更新成功");
+    }
+
+    private List<UserVO> buildUserVOList(List<User> users) {
+        List<UserVO> userVOList = new ArrayList<>();
+        for (User user : users) {
+            userVOList.add(buildUserVO(user));
+        }
+        return userVOList;
+    }
+
+    private UserVO buildUserVO(User user) {
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+
+        LambdaQueryWrapper<UserRole> userRoleWrapper = new LambdaQueryWrapper<>();
+        userRoleWrapper.eq(UserRole::getUserId, user.getId());
+        UserRole userRole = userRoleService.getOne(userRoleWrapper);
+        if (userRole != null) {
+            Role role = roleService.getById(userRole.getRoleId());
+            if (role != null) {
+                userVO.setRoleName(role.getRoleName());
+                userVO.setRoleKey(role.getRoleKey());
+            }
+        }
+        return userVO;
     }
 
     @Override

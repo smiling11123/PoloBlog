@@ -8,9 +8,26 @@ export interface UserInfo {
   email: string
   intro: string
   loginType: string
+  source: string
+  status: string
   statusText: string
   roleName: string
   roleKey: string
+  createTime?: string
+  updateTime?: string
+  loginDate?: string
+}
+
+export interface UpdateUserPayload {
+  id: number | string
+  username: string
+  nickname: string
+  email: string
+  avatar: string
+  intro: string
+  source?: string
+  status?: string
+  isDeleted?: number
 }
 
 export function getUserInfoApi() {
@@ -55,7 +72,15 @@ export const deleteUser = async (params: string) => {
   })
 }
 
-export const updateUserInfo = async (params: any) => {
+export const restoreUserById = async (params: string | number) => {
+  return request({
+    url: '/user/restoreById',
+    params: { id: params },
+    method: 'POST',
+  })
+}
+
+export const updateUserInfo = async (params: UpdateUserPayload) => {
   return request({
     url: '/user/update',
     data: params,

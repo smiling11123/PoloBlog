@@ -1,6 +1,8 @@
 package com.polo.Blog.Service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.polo.Blog.Domain.DTO.SloganDTO;
@@ -38,6 +40,14 @@ public class SloganServiceImpl extends ServiceImpl<SloganMapper, Slogan> impleme
         redisCache.set(SLOGAN_CACHE_KEY, slogans, 30, TimeUnit.MINUTES);
 
         return Result.success(slogans);
+    }
+
+    @Override
+    public Result<IPage<Slogan>> getDeletedSloganList(int page, int size) {
+        Page<Slogan> pageInfo = new Page<>(page, size);
+        LambdaQueryWrapper<Slogan> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Slogan::getIsDeleted, 1).orderByDesc(Slogan::getCreateTime);
+        return Result.success(this.page(pageInfo, wrapper));
     }
 
     @Override
@@ -104,5 +114,22 @@ public class SloganServiceImpl extends ServiceImpl<SloganMapper, Slogan> impleme
         redisCache.deleteCache(SLOGAN_CACHE_KEY);
 
         return Result.success("删除成功");
+    }
+
+    @Override
+    public Result<String> restoreSlogan(Long id) {
+        UserContext.LoginUser loginUser = UserContext.get();
+        if(!loginUser.getRoleKey().equals("admin")) return Result.fail(401, "请登录后操作");
+
+        Slogan slogan = this.getById(id);
+        if(Objects.isNull(slogan) || Objects.equals(slogan.getIsDeleted(), 0)) {
+            return Result.fail(404, "标语不存在");
+        }
+        slogan.setIsDeleted(0);
+        slogan.setCreateTime(LocalDateTime.now());
+        this.updateById(slogan);
+
+        redisCache.deleteCache(SLOGAN_CACHE_KEY);
+        return Result.success("恢复成功");
     }
 }

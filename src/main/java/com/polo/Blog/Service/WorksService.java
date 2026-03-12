@@ -17,6 +17,14 @@ public interface WorksService extends IService<Works> {
     Result<IPage<WorksVO>> getWorksList(Integer page, Integer size);
 
     /**
+     * 获取已删除作品
+     * @param page 页数
+     * @param size 页大小
+     * @return 返回一页
+     */
+    Result<IPage<WorksVO>> getDeletedWorksList(Integer page, Integer size);
+
+    /**
      * 获取作品详情
      * @param id 作品Id
      * @return 然会数据
@@ -43,4 +51,11 @@ public interface WorksService extends IService<Works> {
      * @return 返回处理结果
      */
     Result<String> deleteWorks(Long id);
+
+    /**
+     * 恢复作品
+     * @param id 作品id
+     * @return 返回处理结果
+     */
+    Result<String> restoreWorks(Long id);
 }

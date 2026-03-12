@@ -11,9 +11,28 @@ export const getWallpaperList = async (page: number = 1, size: number = 6) => {
     })
 }
 
+export const getDeletedWallpaperList = async (page: number = 1, size: number = 10) => {
+    return request({
+        url: '/wallpaper/deletedList',
+        method: 'get',
+        params: {
+            page,
+            size
+        }
+    })
+}
+
 export const deleteWallpaper = async (id: number) => {
     return request({
         url: '/wallpaper/delete',
+        method: 'post',
+        params: { id }
+    })
+}
+
+export const restoreWallpaper = async (id: number | string) => {
+    return request({
+        url: '/wallpaper/restore',
         method: 'post',
         params: { id }
     })

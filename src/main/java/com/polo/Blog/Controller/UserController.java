@@ -42,6 +42,11 @@ public class UserController {
         return userService.deleteUserById(id);
     }
 
+    @PostMapping("/restoreById")
+    public Result<String> restoreUserById(@RequestParam Long id){
+        return userService.restoreUserById(id);
+    }
+
     @GetMapping("/search")
     public Result<IPage<UserVO>> searchUserByKeyWord(@RequestParam (defaultValue = "1") int page, @RequestParam (defaultValue = "20") int size, @RequestParam String keyword){
         return userService.searchUserByKeyWord(page, size, keyword);

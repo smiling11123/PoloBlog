@@ -14,6 +14,14 @@ export const getDeletedArticleList = async (params: any) => {
     })
 }
 
+export const restoreDeletedArticle = async (id: string | number) => {
+    return request({
+        url: '/article/restore',
+        method: 'POST',
+        params: { id },
+    })
+}
+
 export const toggleArticleComment = async (id: any) => {
     return request({
         url: '/article/toggleComment',
@@ -28,4 +36,4 @@ export const getArticleListByCategory = async (params: any) => {
         params: params,
     })
 }
-
+

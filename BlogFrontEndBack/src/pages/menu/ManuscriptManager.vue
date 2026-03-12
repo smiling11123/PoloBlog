@@ -8,6 +8,7 @@ import { message } from 'ant-design-vue'
 import { getManuscriptList } from '~@/api/Article/Manuscript'
 import { updateArticle } from '~@/api/Article/ArticleEdit'
 import { formatTimer } from '~@/utils/tools'
+import { deleteMyArticle } from '~@/api/Article/DeleteArticle'
 
 const router = useRouter()
 
@@ -63,8 +64,7 @@ onMounted(() => {
 // 删除
 async function handleDelete(id: number | string) {
   try {
-    console.log('删除文章ID:', id)
-    // await deleteMyArticle(id) // 你的删除API
+    await deleteMyArticle(id)
     message.success('删除成功')
 
     // 删除成功后刷新
@@ -115,6 +115,9 @@ const gotoDetail = async (id: any) => {
     </a-card>
 
     <a-card title="草稿管理">
+      <template #extra>
+        <a-button @click="router.push({ name: 'recyclebin', query: { tab: 'articles' } })">回收站</a-button>
+      </template>
     </a-card>
 
     <a-card :bordered="false" class="mt-4 search-result-card" :body-style="{ padding: '24px' }">

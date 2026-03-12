@@ -46,6 +46,17 @@ public class WorksServiceImpl extends ServiceImpl<WorksMapper, Works> implements
         return Result.success(worksVOIPage);
     }
     @Override
+    public Result<IPage<WorksVO>> getDeletedWorksList(Integer page, Integer size) {
+        IPage<Works> pageInfo = new Page<>(page, size);
+        LambdaQueryWrapper<Works> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Works::getIsDeleted, 1).orderByDesc(Works::getCreateTime);
+        IPage<Works> worksIPage = this.page(pageInfo, wrapper);
+        IPage<WorksVO> worksVOIPage = new Page<>();
+        BeanUtils.copyProperties(worksIPage, worksVOIPage);
+        worksVOIPage.setRecords(EntityListToVOList.worksListToVOList(worksIPage.getRecords()));
+        return Result.success(worksVOIPage);
+    }
+    @Override
     public Result<Works> getWorksDetail(Long id){
         String key = "works_" + id;
         Works worksCache = redisCache.get(key, Works.class);
@@ -76,6 +87,7 @@ public class WorksServiceImpl extends ServiceImpl<WorksMapper, Works> implements
 
         Works works = this.getById(worksDTO.getId());
         BeanUtils.copyProperties(worksDTO, works);
+        this.updateById(works);
 
         String key = "works_" + works.getId();
         redisCache.deleteCache(key);
@@ -88,10 +100,24 @@ public class WorksServiceImpl extends ServiceImpl<WorksMapper, Works> implements
         if(!loginUser.getRoleKey().equals("admin")) return Result.fail(403, "权限不足");
 
         Works works = this.getById(id);
+        if (works == null || works.getIsDeleted() == 1) return Result.fail(404, "作品不存在");
         works.setIsDeleted(1);
         this.updateById(works);
         String key = "works_" + id;
         redisCache.deleteCache(key);
         return Result.success("删除成功");
+    }
+
+    @Override
+    public Result<String> restoreWorks(Long id) {
+        UserContext.LoginUser loginUser = UserContext.get();
+        if(!loginUser.getRoleKey().equals("admin")) return Result.fail(403, "权限不足");
+
+        Works works = this.getById(id);
+        if (works == null || works.getIsDeleted() == 0) return Result.fail(404, "作品不存在");
+        works.setIsDeleted(0);
+        this.updateById(works);
+        redisCache.deleteCache("works_" + id);
+        return Result.success("恢复成功");
     }
 }

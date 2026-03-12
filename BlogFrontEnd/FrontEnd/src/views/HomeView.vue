@@ -2111,20 +2111,20 @@ onUnmounted(() => {
     }
 
     .featured-carousel {
-        height: 280px;
+        height: 240px;
         margin-bottom: 24px;
 
         .slide-content {
             left: 20px;
             right: 20px;
-            bottom: 30px;
+            bottom: 24px;
 
             h3 {
-                font-size: 1.4rem;
+                font-size: 1.25rem;
             }
 
             p {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 -webkit-line-clamp: 1;
             }
         }
@@ -2264,6 +2264,20 @@ onUnmounted(() => {
 
 /* 小屏幕手机优化 */
 @media (max-width: 480px) {
+    .featured-carousel {
+        height: 208px;
+
+        .slide-content {
+            left: 16px;
+            right: 16px;
+            bottom: 18px;
+
+            h3 {
+                font-size: 1.08rem;
+            }
+        }
+    }
+
     .controls-inner {
         padding: 0 16px;
         gap: 12px;

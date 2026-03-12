@@ -6,15 +6,18 @@
         <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
       </defs>
       <g class="parallax">
-        <use class="wave wave-1" xlink:href="#gentle-wave" x="48" y="0" />
-        <use class="wave wave-2" xlink:href="#gentle-wave" x="48" y="3" />
-        <use class="wave wave-3" xlink:href="#gentle-wave" x="48" y="5" />
-        <use class="wave wave-4" xlink:href="#gentle-wave" x="48" y="7" />
+        <use class="wave wave-1" xlink:href="#gentle-wave" x="48" y="0" :fill="themStore.them.wavesColor1" />
+        <use class="wave wave-2" xlink:href="#gentle-wave" x="48" y="3" :fill="themStore.them.wavesColor2" />
+        <use class="wave wave-3" xlink:href="#gentle-wave" x="48" y="5" :fill="themStore.them.wavesColor3" />
+        <use class="wave wave-4" xlink:href="#gentle-wave" x="48" y="7" :fill="themStore.them.contentBgSolid" />
       </g>
     </svg>
   </div>
 </template>
 <script setup lang="ts">
+import { useThemStore } from '@/stores/them'
+
+const themStore = useThemStore()
 </script>
 <style scoped lang="scss">
 .waves-area {
@@ -35,22 +38,6 @@
   width: 100%;
   height: 100%;
   display: block;
-}
-
-.wave-1 {
-  fill: var(--wavesColor1);
-}
-
-.wave-2 {
-  fill: var(--wavesColor2);
-}
-
-.wave-3 {
-  fill: var(--wavesColor3);
-}
-
-.wave-4 {
-  fill: var(--content-bg-solid);
 }
 
 .parallax>use {

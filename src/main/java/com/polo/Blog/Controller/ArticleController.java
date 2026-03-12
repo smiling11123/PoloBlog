@@ -77,6 +77,11 @@ public class ArticleController {
         return articleService.deleteArticle(id);
     }
     @RequireAuth
+    @PostMapping("/restore")
+    public Result<String> restoreArticle(@RequestParam Long id){
+        return articleService.restoreArticle(id);
+    }
+    @RequireAuth
     @PostMapping("/manuscriptPublish")
     public Result<String> publishManuscript(@RequestBody ArticleDTO articleDTO) {
         return articleService.manuscriptToArticle(articleDTO);

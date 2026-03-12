@@ -2,7 +2,6 @@ package com.polo.Blog.Domain.Entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -11,8 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,6 +24,7 @@ public class User {
     private String password;
     private String email;                 // 用户邮箱地址
     private String avatar;                // 用户头像地址
+    private String intro;                 // 个人简介
     private String status;                // 用户状态
     private String source;             // 用户登录方式(github gitee)
     private LocalDateTime loginDate;      // 用户最近登录时间

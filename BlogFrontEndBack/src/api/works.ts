@@ -19,6 +19,17 @@ export const getWorksList = async (page: number = 1, size: number = 5) => {
     })
 }
 
+export const getDeletedWorksList = async (page: number = 1, size: number = 10) => {
+    return request({
+        url: '/works/deletedList',
+        method: 'get',
+        params: {
+            page,
+            size
+        }
+    })
+}
+
 export const getWorksDetail = async (id: string) => {
     return request({
         url: '/works/detail',
@@ -38,6 +49,14 @@ export const publishWorks = async (data: WorksDTO) => {
 export const deleteWorks = async (id: string) => {
     return request({
         url: '/works/delete',
+        method: 'post',
+        params: { id }
+    })
+}
+
+export const restoreWorks = async (id: string | number) => {
+    return request({
+        url: '/works/restore',
         method: 'post',
         params: { id }
     })

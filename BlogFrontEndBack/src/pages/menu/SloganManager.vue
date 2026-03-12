@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
+import { useRouter } from 'vue-router'
 import { deleteSlogan, getSloganList, publishSlogan } from '~/api/slogan'
 
 interface SloganItem {
@@ -11,6 +12,7 @@ interface SloganItem {
 }
 
 const MAX_SLOGAN_LENGTH = 128
+const router = useRouter()
 
 const slogans = ref<SloganItem[]>([])
 const loading = ref(false)
@@ -148,6 +150,7 @@ onMounted(() => {
       <template #extra>
         <div class="action-group">
           <span class="slogan-count">共 {{ slogans.length }} 条</span>
+          <a-button @click="router.push({ name: 'recyclebin', query: { tab: 'slogans' } })">回收站</a-button>
           <a-button @click="fetchSlogans" :loading="loading">刷新</a-button>
           <a-button type="primary" @click="showModal">添加标语</a-button>
         </div>

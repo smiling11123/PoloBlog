@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
 import { getMessageSlipList, deleteMessageSlip } from '~/api/messageSlip'
 
+const router = useRouter()
 const data = ref<any[]>([])
 const loading = ref(false)
 const pagination = ref({
@@ -39,9 +41,13 @@ const handleTableChange = (pag: any) => {
 
 const handleDelete = async (id: number) => {
   try {
-    await deleteMessageSlip(id)
-    message.success('删除成功')
-    fetchMessages(pagination.value.current, pagination.value.pageSize)
+    const res: any = await deleteMessageSlip(id)
+    if (res.code === 200) {
+      message.success('删除成功')
+      fetchMessages(pagination.value.current, pagination.value.pageSize)
+      return
+    }
+    message.error(res.msg || '删除留言失败')
   } catch (error) {
     message.error('删除留言失败')
   }
@@ -55,6 +61,9 @@ onMounted(() => {
 <template>
   <div class="message-manager-container" style="padding: 24px">
     <a-card title="留言管理" :bordered="false">
+      <template #extra>
+        <a-button @click="router.push({ name: 'recyclebin', query: { tab: 'messages' } })">回收站</a-button>
+      </template>
       <a-table
         :columns="columns"
         :row-key="(record) => record.id"

@@ -30,6 +30,13 @@ public interface ArticleService extends IService<Article> {
     Result<IPage<ArticleVO>> getDeletedArticleList(int page, int size);
 
     /**
+     * 恢复已删除文章
+     * @param id 文章id
+     * @return 返回恢复结果
+     */
+    Result<String> restoreArticle(Long id);
+
+    /**
      * 根据文章id获取文章详细内容
      *
      * @param id 文章id

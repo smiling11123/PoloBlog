@@ -11,6 +11,14 @@ export const getSloganList = async () => {
   })
 }
 
+export const getDeletedSloganList = async (page: number = 1, size: number = 20) => {
+  return request({
+    url: '/slogan/deletedList',
+    method: 'get',
+    params: { page, size },
+  })
+}
+
 export const publishSlogan = async (data: SloganDTO) => {
   return request({
     url: '/slogan/publish',
@@ -22,6 +30,14 @@ export const publishSlogan = async (data: SloganDTO) => {
 export const deleteSlogan = async (id: string | number) => {
   return request({
     url: '/slogan/delete',
+    method: 'post',
+    params: { id },
+  })
+}
+
+export const restoreSlogan = async (id: string | number) => {
+  return request({
+    url: '/slogan/restore',
     method: 'post',
     params: { id },
   })

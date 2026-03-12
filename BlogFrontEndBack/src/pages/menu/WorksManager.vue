@@ -47,9 +47,13 @@ const handleTableChange = (pag: any) => {
 const handleDelete = async (id: string | number) => {
   try {
     const stringId = String(id)
-    await deleteWorks(stringId)
-    message.success('删除成功')
-    fetchWorks(pagination.value.current, pagination.value.pageSize)
+    const res: any = await deleteWorks(stringId)
+    if (res.code === 200) {
+      message.success('删除成功')
+      fetchWorks(pagination.value.current, pagination.value.pageSize)
+      return
+    }
+    message.error(res.msg || '删除作品失败')
   } catch (error) {
     message.error('删除作品失败')
   }
@@ -73,7 +77,10 @@ onMounted(() => {
   <div class="works-manager-container" style="padding: 24px">
     <a-card title="作品管理" :bordered="false">
       <template #extra>
-        <a-button type="primary" @click="goPublish">发布作品</a-button>
+        <a-space>
+          <a-button @click="router.push({ name: 'recyclebin', query: { tab: 'works' } })">回收站</a-button>
+          <a-button type="primary" @click="goPublish">发布作品</a-button>
+        </a-space>
       </template>
 
       <a-table

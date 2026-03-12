@@ -2,6 +2,8 @@ package com.polo.Blog.Service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.polo.Blog.Domain.DTO.CategoryDTO;
@@ -14,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -53,6 +56,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
         return Result.success(categoryList);
     }
+
+    @Override
+    public Result<IPage<Category>> getDeletedCategoryList(int page, int size) {
+        Page<Category> pageInfo = new Page<>(page, size);
+        LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Category::getIsDeleted, 1)
+                .orderByDesc(Category::getUpdateTime, Category::getCreateTime);
+        return Result.success(this.page(pageInfo, wrapper));
+    }
     @Override
     public Result createCategory(CategoryDTO categoryDTO){
         LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
@@ -85,6 +97,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         if (category == null) return Result.fail(400, "分类不存在");
         
         category.setIsDeleted(1);
+        category.setUpdateTime(LocalDateTime.now());
         this.updateById(category);
 
         /// 清除缓存
@@ -92,5 +105,20 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         redisCache.deleteCache("HotCategoryList");
 
         return Result.success("删除成功");
+    }
+
+    @Override
+    public Result restoreCategory(Long id) {
+        Category category = this.getById(id);
+        if (category == null || category.getIsDeleted() == 0) return Result.fail(400, "分类不存在");
+
+        category.setIsDeleted(0);
+        category.setUpdateTime(LocalDateTime.now());
+        this.updateById(category);
+
+        redisCache.deleteCache("categoryList");
+        redisCache.deleteCache("HotCategoryList");
+
+        return Result.success("恢复成功");
     }
 }

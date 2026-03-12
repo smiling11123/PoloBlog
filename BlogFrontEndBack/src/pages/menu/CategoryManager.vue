@@ -109,7 +109,10 @@ onMounted(() => {
   <div class="category-manager-container" style="padding: 24px">
     <a-card title="分类管理" :bordered="false">
       <template #extra>
-        <a-button type="primary" @click="showModal">添加分类</a-button>
+        <a-space>
+          <a-button @click="router.push({ name: 'recyclebin', query: { tab: 'categories' } })">回收站</a-button>
+          <a-button type="primary" @click="showModal">添加分类</a-button>
+        </a-space>
       </template>
 
       <a-table

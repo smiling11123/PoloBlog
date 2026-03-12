@@ -73,6 +73,13 @@ public interface UserService extends IService<User> {
     Result<String> deleteUserById(Long id);
 
     /**
+     * 恢复已删除用户
+     * @param id 用户id
+     * @return 返回恢复结果
+     */
+    Result<String> restoreUserById(Long id);
+
+    /**
      * 分页获取用户列表
      * @param pageNum 页数
      * @param pageSize 页大小

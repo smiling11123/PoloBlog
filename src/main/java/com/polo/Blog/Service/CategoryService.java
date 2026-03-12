@@ -6,6 +6,7 @@ import com.polo.Blog.Domain.Entity.Category;
 import com.polo.Blog.Utils.Result;
 
 import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 
 public interface CategoryService extends IService<Category> {
     /**
@@ -19,6 +20,14 @@ public interface CategoryService extends IService<Category> {
      * @return 返回所有分类
      */
     Result<List<Category>> getCategoryList();
+
+    /**
+     * 获取已删除分类
+     * @param page 页数
+     * @param size 页大小
+     * @return 返回一页
+     */
+    Result<IPage<Category>> getDeletedCategoryList(int page, int size);
 
     /**
      * 创建分类
@@ -40,4 +49,11 @@ public interface CategoryService extends IService<Category> {
      * @return 返回处理结果
      */
     Result deleteCategory(Long id);
+
+    /**
+     * 恢复分类
+     * @param id 分类id
+     * @return 返回处理结果
+     */
+    Result restoreCategory(Long id);
 }

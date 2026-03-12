@@ -18,6 +18,14 @@ public interface MessageSlipService extends IService<MessageSlip> {
     Result<IPage<MessageSlip>> getMessageSlipList(Integer page, Integer size);
 
     /**
+     * 获取已删除留言
+     * @param page 页数
+     * @param size 页大小
+     * @return 返回一页
+     */
+    Result<IPage<MessageSlip>> getDeletedMessageSlipList(Integer page, Integer size);
+
+    /**
      * 获取 N 条弹幕用于首页展示
      * @param num 数量
      * @return 返回弹幕列表
@@ -38,4 +46,11 @@ public interface MessageSlipService extends IService<MessageSlip> {
      * @return 返回处理结果
      */
     Result<String> deleteMessageSlip(Long id);
+
+    /**
+     * 恢复留言
+     * @param id 留言id
+     * @return 返回处理结果
+     */
+    Result<String> restoreMessageSlip(Long id);
 }
