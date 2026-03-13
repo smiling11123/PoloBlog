@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,22 +55,30 @@ public class MessageSlipServiceImpl extends ServiceImpl<MessageSlipMapper, Messa
 
     @Override
     public Result<String> publishMessageSlip(String content, Long userId){
+        if(content == null || content.trim().isEmpty()) {
+            return Result.fail(400, "留言内容不能为空");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
         MessageSlip messageSlip = new MessageSlip();
-        messageSlip.setContent(content);
+        messageSlip.setContent(content.trim());
+        messageSlip.setCreateTime(now);
+        messageSlip.setIsDeleted(0);
 
         if(userId == null) {
-            messageSlip.setId((long) -1);
+            messageSlip.setUserId(-1L);
         }else {
             messageSlip.setUserId(userId);
         }
 
         this.save(messageSlip);
-        String date = LocalDateTime.now().toString();
+        String date = LocalDate.now().toString();
         String newMessageSlipKey = "sys_daily_statistics:" + date + ":message_slip";
         stringRedisTemplate.opsForValue().increment(newMessageSlipKey);
 
         String key = "MessageSlipToShow";
         redisCache.deleteCache(key);
+        redisCache.deleteCache("all_site_data");
         return Result.success("发布成功");
     }
 
@@ -84,6 +93,7 @@ public class MessageSlipServiceImpl extends ServiceImpl<MessageSlipMapper, Messa
         this.updateById(messageSlip);
         String key = "MessageSlipToShow";
         redisCache.deleteCache(key);
+        redisCache.deleteCache("all_site_data");
         return Result.success("删除成功");
     }
 
@@ -96,6 +106,7 @@ public class MessageSlipServiceImpl extends ServiceImpl<MessageSlipMapper, Messa
         messageSlip.setIsDeleted(0);
         this.updateById(messageSlip);
         redisCache.deleteCache("MessageSlipToShow");
+        redisCache.deleteCache("all_site_data");
         return Result.success("恢复成功");
     }
 }

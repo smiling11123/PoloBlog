@@ -308,7 +308,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         if(article.getStatus() == 1){
             // 处理表关联
             //新发布 + 1 记录到Redis
-            String key = LocalDate.now().toString();
+            String date = LocalDate.now().toString();
+            String key = "sys_daily_statistics:" + date + ":new_article_count";
             redisTemplate.opsForValue().increment(key);
         }
         return Result.success("发布成功");
